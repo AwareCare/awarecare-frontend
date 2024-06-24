@@ -8,11 +8,15 @@ export interface BasePerson {
 export interface Person extends BasePerson {
   id: string;
   user_id?: string;
+  role?: string;
+  status?: string;
   device_trackers?: string[];
 }
 
 export interface PersonMutableParams {
   name: string;
+  role: string;
+  status: string;
   user_id: string | null;
   device_trackers: string[];
   picture: string | null;

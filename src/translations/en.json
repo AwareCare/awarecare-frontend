@@ -4149,6 +4149,8 @@
             "new_person": "New person",
             "name": "Name",
             "name_error_msg": "Name is required",
+            "type": "Person Type",
+            "status": "Current Status",
             "linked_user": "Linked User",
             "device_tracker_intro": "Select the devices that belong to this person.",
             "no_device_tracker_available_intro": "When you have devices that indicate the presence of a person, you will be able to assign them to a person here. You can add your first device by adding a presence-detection integration from the integrations page.",
@@ -6852,13 +6854,13 @@
         }
       },
       "page-onboarding": {
-        "intro": "Are you ready to awaken your home, reclaim your privacy and join a worldwide community of tinkerers?",
+        "intro": "Together we can make a safer environment for students of all ages.",
         "back": "Back",
         "next": "Next",
         "finish": "Finish",
         "help": "Help",
         "welcome": {
-          "header": "Welcome!",
+          "header": "AwareCare Schools",
           "start": "Create my smart home",
           "restore_backup": "Restore from backup",
           "vision": "Read our vision",

@@ -27,6 +27,7 @@ import { documentationUrl } from "../../../util/documentation-url";
 import { showAddUserDialog } from "../users/show-dialog-add-user";
 import { showAdminChangePasswordDialog } from "../users/show-dialog-admin-change-password";
 import { PersonDetailDialogParams } from "./show-dialog-person-detail";
+import { stopPropagation } from "../../../common/dom/stop_propagation";
 
 const includeDomains = ["device_tracker"];
 
@@ -44,6 +45,10 @@ class DialogPersonDetail extends LitElement {
   @state() private _userId?: string;
 
   @state() private _user?: User;
+
+  @state() private _role!: string;
+
+  @state() private _status!: string;
 
   @state() private _isAdmin?: boolean;
 
@@ -75,6 +80,8 @@ class DialogPersonDetail extends LitElement {
       this._personExists = true;
       this._name = this._params.entry.name || "";
       this._userId = this._params.entry.user_id || undefined;
+      this._role = this._params.entry.role || "";
+      this._status = this._params.entry.status || "";
       this._deviceTrackers = this._params.entry.device_trackers || [];
       this._picture = this._params.entry.picture || null;
       this._user = this._userId
@@ -90,6 +97,8 @@ class DialogPersonDetail extends LitElement {
       this._isAdmin = undefined;
       this._localOnly = undefined;
       this._deviceTrackers = [];
+      this._role = "";
+      this._status = "";
       this._picture = null;
     }
     await this.updateComplete;
@@ -127,6 +136,27 @@ class DialogPersonDetail extends LitElement {
               required
             ></ha-textfield>
 
+            <ha-select
+              .value=${this._role}
+              @selected=${this._roleChanged}
+              @closed=${stopPropagation}
+              label="Role"
+              fixedMenuPosition
+              naturalMenuWidth
+              required
+            >
+              <ha-list-item value="police">Police</ha-list-item>
+              <ha-list-item value="fire">Fire</ha-list-item>
+              <ha-list-item value="medical">Medical</ha-list-item>
+              <ha-list-item value="school-admin"
+                >School Administrator</ha-list-item
+              >
+              <ha-list-item value="teacher">Teacher</ha-list-item>
+              <ha-list-item value="assistant">Assistant</ha-list-item>
+              <ha-list-item value="student">Student</ha-list-item>
+              <ha-list-item value="visitor">Visitor</ha-list-item>
+            </ha-select>
+
             <ha-picture-upload
               .hass=${this.hass}
               .value=${this._picture}
@@ -134,6 +164,21 @@ class DialogPersonDetail extends LitElement {
               .cropOptions=${cropOptions}
               @change=${this._pictureChanged}
             ></ha-picture-upload>
+
+            <ha-select
+              .value=${this._status}
+              @selected=${this._statusChanged}
+              @closed=${stopPropagation}
+              .label=${this.hass!.localize(
+                "ui.panel.config.person.detail.status"
+              )}
+              fixedMenuPosition
+              naturalMenuWidth
+              required
+            >
+              <ha-list-item value="ok">Ok</ha-list-item>
+              <ha-list-item value="danger">Danger</ha-list-item>
+            </ha-select>
 
             <ha-formfield
               .label=${this.hass!.localize(
@@ -276,6 +321,16 @@ class DialogPersonDetail extends LitElement {
     this._name = ev.target.value;
   }
 
+  private _roleChanged(ev) {
+    this._error = undefined;
+    this._role = ev.target.value;
+  }
+
+  private _statusChanged(ev) {
+    this._error = undefined;
+    this._status = ev.target.value;
+  }
+
   private _adminChanged(ev): void {
     this._isAdmin = ev.target.checked;
   }
@@ -363,12 +418,16 @@ class DialogPersonDetail extends LitElement {
           group_ids: [
             this._isAdmin ? SYSTEM_GROUP_ID_ADMIN : SYSTEM_GROUP_ID_USER,
           ],
+          role: this._role,
+          status: this._status,
           local_only: this._localOnly,
         });
         this._params?.refreshUsers();
       }
       const values: PersonMutableParams = {
         name: this._name.trim(),
+        role: this._role,
+        status: this._status,
         device_trackers: this._deviceTrackers,
         user_id: this._userId || null,
         picture: this._picture,

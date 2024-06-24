@@ -17,6 +17,7 @@ export interface User {
   id: string;
   username: string | null;
   name: string;
+  status: string;
   is_owner: boolean;
   is_active: boolean;
   local_only: boolean;
@@ -27,6 +28,8 @@ export interface User {
 
 export interface UpdateUserParams {
   name?: User["name"];
+  role?: User["role"];
+  status?: User["status"];
   is_active?: User["is_active"];
   group_ids?: User["group_ids"];
   local_only?: boolean;
