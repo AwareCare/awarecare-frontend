@@ -23,6 +23,12 @@ import { handleAction } from "../common/handle-action";
 import { hasAction } from "../common/has-action";
 import { createEntityNotFoundWarning } from "./hui-warning";
 
+const stateToColorMap = {
+  good: "#4caf50",
+  medical: "#ffc107",
+  danger: "#ff0000",
+};
+
 @customElement("hui-generic-entity-row")
 export class HuiGenericEntityRow extends LitElement {
   @property({ attribute: false }) public hass?: HomeAssistant;
@@ -63,15 +69,14 @@ export class HuiGenericEntityRow extends LitElement {
     const pointer = !(
       this.config.tap_action && this.config.tap_action.action === "none"
     );
-
+    const stateClass = stateObj.state.toLowerCase();
+    const stateColor = stateToColorMap[stateClass] || "#4caf50";
     const hasSecondary = this.secondaryText || this.config.secondary_info;
     const name = this.config.name ?? computeStateName(stateObj);
 
     return html`
       <state-badge
-        class=${classMap({
-          pointer,
-        })}
+        class="pointer ${stateClass}"
         .hass=${this.hass}
         .stateObj=${stateObj}
         .overrideIcon=${this.config.icon}
@@ -83,6 +88,7 @@ export class HuiGenericEntityRow extends LitElement {
           hasDoubleClick: hasAction(this.config!.double_tap_action),
         })}
         tabindex=${ifDefined(pointer ? "0" : undefined)}
+        style="border-color: ${stateColor}"
       ></state-badge>
       ${!this.hideName
         ? html`<div
@@ -228,7 +234,9 @@ export class HuiGenericEntityRow extends LitElement {
       }
       state-badge {
         flex: 0 0 40px;
+        border: 2px solid;
       }
+
       .pointer {
         cursor: pointer;
       }
