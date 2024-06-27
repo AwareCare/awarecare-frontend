@@ -26,7 +26,6 @@ class StateStatus extends LitElement {
 
   static styles = css`
     .state {
-      color: #4caf50; //var(--primary-text-color);
       margin-inline-start: 16px;
       margin-inline-end: initial;
       text-align: var(--float-end, right);
@@ -46,8 +45,8 @@ class StateStatus extends LitElement {
 
   render() {
     const state = this.hass.formatEntityState(this.stateObj).toLowerCase();
-    const iconPath = stateToIconMap[state] || mdiShieldCheckOutline;
-    const stateColor = stateToColorMap[state] || "#4caf50";
+    const iconPath = stateToIconMap[state] || null;
+    const stateColor = stateToColorMap[state] || "inherit";
 
     return html`
       <div class="state ${state}" style="color: ${stateColor}">
