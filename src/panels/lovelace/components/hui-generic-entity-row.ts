@@ -24,9 +24,9 @@ import { hasAction } from "../common/has-action";
 import { createEntityNotFoundWarning } from "./hui-warning";
 
 const stateToColorMap = {
-  good: "#4caf50",
-  medical: "#ffc107",
-  danger: "#ff0000",
+  ok: "#1DD1A1",
+  danger: "#EE5253",
+  medical: "54A0FF",
 };
 
 @customElement("hui-generic-entity-row")
@@ -69,8 +69,8 @@ export class HuiGenericEntityRow extends LitElement {
     const pointer = !(
       this.config.tap_action && this.config.tap_action.action === "none"
     );
-    const stateClass = stateObj.state.toLowerCase();
-    const stateColor = stateToColorMap[stateClass] || "#4caf50";
+    const stateClass = stateObj?.attributes?.status.toLowerCase();
+    const stateColor = stateToColorMap[stateClass] || "#C8D6E5";
     const hasSecondary = this.secondaryText || this.config.secondary_info;
     const name = this.config.name ?? computeStateName(stateObj);
 
