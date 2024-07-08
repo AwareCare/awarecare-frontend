@@ -3,6 +3,7 @@ import type { HassEntity } from "home-assistant-js-websocket";
 import { css, CSSResultGroup, html, LitElement, nothing } from "lit";
 import { customElement, property } from "lit/decorators";
 import { computeStateName } from "../../common/entity/compute_state_name";
+import { computeStateRole } from "../../common/entity/compute_state_role";
 import type { HomeAssistant } from "../../types";
 import "../ha-relative-time";
 import "./state-badge";
@@ -23,6 +24,7 @@ class StateInfo extends LitElement {
     }
 
     const name = computeStateName(this.stateObj);
+    const role = computeStateRole(this.stateObj);
 
     return html`<state-badge
         .hass=${this.hass}
@@ -32,7 +34,7 @@ class StateInfo extends LitElement {
       ></state-badge>
       <div class="info">
         <div class="name" .title=${name} .inDialog=${this.inDialog}>
-          ${name}
+          ${name} <span class="role">${`| ` + role}</span>
         </div>
         ${this.inDialog
           ? html`<div class="time-ago">
@@ -105,6 +107,13 @@ class StateInfo extends LitElement {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+
+        .role {
+          color: gray !important;
+          text-transform: uppercase !important;
+          font-size: 11px;
+          font-weight: bold;
+        }
       }
 
       .name[inDialog],

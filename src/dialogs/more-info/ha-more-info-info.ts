@@ -27,6 +27,8 @@ export class MoreInfoInfo extends LitElement {
 
   @property({ attribute: false }) public editMode?: boolean;
 
+  @property({ attribute: false }) public hideInfo?: boolean;
+
   @query("ha-more-info-history")
   private _history?: MoreInfoHistory;
 
@@ -36,7 +38,9 @@ export class MoreInfoInfo extends LitElement {
 
   protected render() {
     const entityId = this.entityId;
+    const hideAttrib = this.hideInfo;
     const stateObj = this.hass.states[entityId] as HassEntity | undefined;
+
     const entityRegObj = this.hass.entities[entityId];
     const domain = computeDomain(entityId);
     const isNewMoreInfo = stateObj && computeShowNewMoreInfo(stateObj);
@@ -88,13 +92,16 @@ export class MoreInfoInfo extends LitElement {
                 .hass=${this.hass}
                 .entityId=${this.entityId}
               ></ha-more-info-logbook>`}
-          <more-info-content
-            ?full-height=${isNewMoreInfo}
-            .stateObj=${stateObj}
-            .hass=${this.hass}
-            .entry=${this.entry}
-            .editMode=${this.editMode}
-          ></more-info-content>
+          ${!hideAttrib
+            ? html` <more-info-content
+                ?full-height=${isNewMoreInfo}
+                .stateObj=${stateObj}
+                .hass=${this.hass}
+                .entry=${this.entry}
+                .editMode=${this.editMode}
+                class="attrib-content ${hideAttrib}"
+              ></more-info-content>`
+            : ""}
         </div>
       </div>
     `;
