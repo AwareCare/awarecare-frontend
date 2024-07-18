@@ -10,6 +10,7 @@ export interface AreaRegistryEntry {
   floor_id: string | null;
   name: string;
   picture: string | null;
+  status: string | null;
   icon: string | null;
   labels: string[];
   aliases: string[];
@@ -27,6 +28,7 @@ export interface AreaRegistryEntryMutableParams {
   name: string;
   floor_id?: string | null;
   picture?: string | null;
+  status?: string | null;
   icon?: string | null;
   aliases?: string[];
   labels?: string[];

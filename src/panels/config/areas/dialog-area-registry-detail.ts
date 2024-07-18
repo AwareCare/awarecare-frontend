@@ -1,7 +1,8 @@
 import "@material/mwc-button";
 import "@material/mwc-list/mwc-list";
 import { css, CSSResultGroup, html, LitElement, nothing } from "lit";
-import { property, state } from "lit/decorators";
+import { ComboBoxLitRenderer } from "@vaadin/combo-box/lit";
+import { property, state, query } from "lit/decorators";
 import { fireEvent } from "../../../common/dom/fire_event";
 import "../../../components/ha-alert";
 import "../../../components/ha-aliases-editor";
@@ -13,11 +14,17 @@ import "../../../components/ha-icon-picker";
 import "../../../components/ha-floor-picker";
 import "../../../components/ha-textfield";
 import "../../../components/ha-labels-picker";
+import {
+  ScorableTextItem,
+  fuzzyFilterSort,
+} from "../../../common/string/filter/sequence-matching";
 import { AreaRegistryEntryMutableParams } from "../../../data/area_registry";
 import { CropOptions } from "../../../dialogs/image-cropper-dialog/show-image-cropper-dialog";
 import { haStyleDialog } from "../../../resources/styles";
 import { HomeAssistant, ValueChangedEvent } from "../../../types";
 import { AreaRegistryDetailDialogParams } from "./show-dialog-area-registry-detail";
+import { stopPropagation } from "../../../common/dom/stop_propagation";
+import type { HaComboBox } from "../../../components/ha-combo-box";
 
 const cropOptions: CropOptions = {
   round: false,
@@ -25,6 +32,60 @@ const cropOptions: CropOptions = {
   quality: 0.75,
   aspectRatio: 1.78,
 };
+
+interface AreaStatus {
+  name: string;
+  value: string | null;
+  icon?: string | null;
+}
+
+const areaStatuses: AreaStatus[] = [
+  {
+    name: "Ok",
+    value: "ok",
+    icon: "mdi:check-bold",
+  },
+  {
+    name: "Shooter",
+    value: "shooter",
+    icon: "mdi:pistol",
+  },
+  {
+    name: "Fire",
+    value: "fire",
+    icon: "mdi:fire",
+  },
+  {
+    name: "Medical",
+    value: "medical",
+    icon: "mdi:medical-bag",
+  },
+  {
+    name: "Weather",
+    value: "weather",
+    icon: "mdi:weather-lightning-rainy",
+  },
+  {
+    name: "Suspicious Person",
+    value: "suspicious",
+    icon: "mdi:account-alert",
+  },
+  {
+    name: "Disciplinary",
+    value: "disciplinary",
+    icon: "mdi:alert",
+  },
+];
+
+type ScorableAreaRStatus = ScorableTextItem & AreaStatus;
+
+const rowRenderer: ComboBoxLitRenderer<AreaStatus> = (item) =>
+  html`<ha-list-item graphic="icon" class="status" .value=${item.value}>
+    ${item.icon
+      ? html`<ha-icon slot="graphic" .icon=${item.icon}></ha-icon>`
+      : html``}
+    ${item.name}
+  </ha-list-item>`;
 
 class DialogAreaDetail extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
@@ -37,6 +98,8 @@ class DialogAreaDetail extends LitElement {
 
   @state() private _picture!: string | null;
 
+  @state() private _status!: string | null;
+
   @state() private _icon!: string | null;
 
   @state() private _floor!: string | null;
@@ -46,6 +109,8 @@ class DialogAreaDetail extends LitElement {
   @state() private _params?: AreaRegistryDetailDialogParams;
 
   @state() private _submitting?: boolean;
+
+  @query("ha-combo-box", true) public comboBox!: HaComboBox;
 
   public async showDialog(
     params: AreaRegistryDetailDialogParams
@@ -58,6 +123,7 @@ class DialogAreaDetail extends LitElement {
     this._aliases = this._params.entry ? this._params.entry.aliases : [];
     this._labels = this._params.entry ? this._params.entry.labels : [];
     this._picture = this._params.entry?.picture || null;
+    this._status = this._params.entry?.status || null;
     this._icon = this._params.entry?.icon || null;
     this._floor = this._params.entry?.floor_id || null;
     await this.updateComplete;
@@ -114,6 +180,22 @@ class DialogAreaDetail extends LitElement {
               required
               dialogInitialFocus
             ></ha-textfield>
+
+            <ha-combo-box
+              .hass=${this.hass}
+              item-value-path="value"
+              item-id-path="value"
+              item-label-path="name"
+              .items=${areaStatuses}
+              .value=${this._status}
+              .required=${true}
+              label="Status"
+              placeholder="Status"
+              @value-changed=${this._statusChanged}
+              .renderer=${rowRenderer}
+              @filter-changed=${this._filterChanged}
+            >
+            </ha-combo-box>
 
             <ha-icon-picker
               .hass=${this.hass}
@@ -177,6 +259,33 @@ class DialogAreaDetail extends LitElement {
     `;
   }
 
+  private _filterChanged(ev: CustomEvent): void {
+    const target = ev.target as HaComboBox;
+
+    // this.comboBox.filteredItems = areaStatuses;
+    const filterString = ev.detail.value;
+    if (!filterString) {
+      this.comboBox.filteredItems = this.comboBox.items;
+      return;
+    }
+
+    const filteredItems = fuzzyFilterSort<ScorableAreaRStatus>(
+      filterString,
+      target.items || []
+    );
+    if (filteredItems.length === 0) {
+      this.comboBox.filteredItems = [
+        {
+          name: "No Matching Statuses",
+          value: "",
+          icon: "mdi:help",
+        },
+      ] as AreaStatus[];
+    } else {
+      this.comboBox.filteredItems = filteredItems;
+    }
+  }
+
   private _isNameValid() {
     return this._name.trim() !== "";
   }
@@ -184,6 +293,14 @@ class DialogAreaDetail extends LitElement {
   private _nameChanged(ev) {
     this._error = undefined;
     this._name = ev.target.value;
+  }
+
+  private _statusChanged(ev: ValueChangedEvent<string>) {
+    ev.stopPropagation();
+
+    this._error = undefined;
+    this._status = ev.detail.value;
+    this.comboBox.setInputValue("");
   }
 
   private _floorChanged(ev) {
@@ -213,6 +330,7 @@ class DialogAreaDetail extends LitElement {
       const values: AreaRegistryEntryMutableParams = {
         name: this._name.trim(),
         picture: this._picture || (create ? undefined : null),
+        status: this._status || (create ? undefined : null),
         icon: this._icon || (create ? undefined : null),
         floor_id: this._floor || (create ? undefined : null),
         labels: this._labels || null,
@@ -242,6 +360,7 @@ class DialogAreaDetail extends LitElement {
       haStyleDialog,
       css`
         ha-textfield,
+        ha-combo-box,
         ha-icon-picker,
         ha-floor-picker,
         ha-labels-picker,
