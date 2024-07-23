@@ -25,8 +25,11 @@ import { createEntityNotFoundWarning } from "./hui-warning";
 
 const stateToColorMap = {
   ok: "#1DD1A1",
-  danger: "#EE5253",
-  medical: "54A0FF",
+  medical: "#54A0FF",
+  wounded: "#CC00CC",
+  disciplinary: "#F368E0",
+  unaccounted: "#01A3A4",
+  absent: "#666666",
 };
 
 @customElement("hui-generic-entity-row")

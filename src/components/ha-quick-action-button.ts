@@ -6,6 +6,7 @@ import {
   mdiMedicalBag,
   mdiBandage,
   mdiSchool,
+  mdiAccountAlert,
   mdiAccountCancel,
 } from "@mdi/js";
 import { HomeAssistant } from "../types";
@@ -107,7 +108,7 @@ class QuickActionButtons extends LitElement {
           ><div class="content-wrapper">
             <span
               ><ha-svg-icon
-                .path=${mdiAccountCancel}
+                .path=${mdiAccountAlert}
                 .width=${38}
                 .height=${38}
               ></ha-svg-icon
@@ -134,40 +135,87 @@ class QuickActionButtons extends LitElement {
   }
 
   static get styles() {
-    return [
-      css`
-        .row {
-          display: flex;
-          justify-content: space-between; /* Adjusts spacing between buttons */
-          margin: 16px; /* Adds spacing between rows */
-        }
-        .content-wrapper {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-        }
-        .status-button {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center; /* Centers items horizontally */
-          height: 80px; /* Sets the button height */
-          flex: 1 1 calc(33.333% - 8px); /* Ensures 3 buttons per row with spacing */
-          margin-right: 8px; /* Adds spacing between buttons, except last in row */
-          border: 1px solid #e1e1e11f;
-          border-radius: 8px;
-          transition:
-            background-color 0.3s,
-            border-color 0.3s; /* Smooth transition for hover effect */
-        }
-        .status-button:last-child {
-          margin-right: 0; /* Removes margin from the last button in each row */
-        }
-        .status-button:hover {
-          background-color: #f0f0f014;
-        }
-      `,
-    ];
+    return css`
+      .row {
+        display: flex;
+        justify-content: space-between; /* Adjusts spacing between buttons */
+        margin: 16px; /* Adds spacing between rows */
+      }
+      .content-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .status-button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 80px;
+        flex: 1 1 calc(33.333% - 8px);
+        margin-right: 8px;
+        border: 1px solid #e1e1e11f;
+        border-radius: 8px;
+        transition:
+          background-color 0.3s,
+          border-color 0.3s;
+      }
+      .status-button:last-child {
+        margin-right: 0;
+      }
+      .status-button:hover {
+        background-color: #f0f0f08c;
+      }
+
+      /* Define CSS variables within the component */
+      .status-button.ok {
+        --status-color: #1dd1a1;
+        border-color: var(--status-color);
+      }
+      .status-button.ok .content-wrapper {
+        color: var(--status-color);
+      }
+
+      .status-button.medical {
+        --status-color: #54a0ff;
+        border-color: var(--status-color);
+      }
+      .status-button.medical .content-wrapper {
+        color: var(--status-color);
+      }
+
+      .status-button.wounded {
+        --status-color: #cc00cc;
+        border-color: var(--status-color);
+      }
+      .status-button.wounded .content-wrapper {
+        color: var(--status-color);
+      }
+
+      .status-button.disciplinary {
+        --status-color: #f368e0;
+        border-color: var(--status-color);
+      }
+      .status-button.disciplinary .content-wrapper {
+        color: var(--status-color);
+      }
+
+      .status-button.unaccounted {
+        --status-color: #01a3a4;
+        border-color: var(--status-color);
+      }
+      .status-button.unaccounted .content-wrapper {
+        color: var(--status-color);
+      }
+
+      .status-button.absent {
+        --status-color: #666666;
+        border-color: var(--status-color);
+      }
+      .status-button.absent .content-wrapper {
+        color: var(--status-color);
+      }
+    `;
   }
 }
 
