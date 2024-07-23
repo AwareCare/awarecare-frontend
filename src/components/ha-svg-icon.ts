@@ -6,15 +6,32 @@ import {
   svg,
   SVGTemplateResult,
 } from "lit";
-import { customElement, property } from "lit/decorators";
+import { customElement, property, state } from "lit/decorators";
 
 @customElement("ha-svg-icon")
 export class HaSvgIcon extends LitElement {
   @property() public path?: string;
 
-  @property() public secondaryPath?: string;
+  @property({ attribute: "secondary-path" }) public secondaryPath?: string;
 
-  @property() public viewBox?: string;
+  @property({ attribute: "view-box" }) public viewBox?: string;
+
+  @property({ type: Number }) public height?: number;
+
+  @property({ type: Number }) public width?: number;
+
+  @state() public _width = 24;
+
+  @state() public _height = 24;
+
+  protected updated(changedProperties: Map<string, unknown>): void {
+    if (changedProperties.has("height")) {
+      this._height = this.height || 24;
+    }
+    if (changedProperties.has("width")) {
+      this._width = this.width || 24;
+    }
+  }
 
   protected render(): SVGTemplateResult {
     return svg`
@@ -24,6 +41,8 @@ export class HaSvgIcon extends LitElement {
       focusable="false"
       role="img"
       aria-hidden="true"
+      height=${this._height}
+      width=${this._width}
     >
       <g>
         ${
@@ -49,8 +68,8 @@ export class HaSvgIcon extends LitElement {
         position: relative;
         vertical-align: middle;
         fill: var(--icon-primary-color, currentcolor);
-        width: var(--mdc-icon-size, 24px);
-        height: var(--mdc-icon-size, 24px);
+        width: var(--mdc-icon-size, width || 24px);
+        height: var(--mdc-icon-size, height || 24px);
       }
       svg {
         width: 100%;

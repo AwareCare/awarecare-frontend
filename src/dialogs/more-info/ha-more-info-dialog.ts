@@ -52,6 +52,8 @@ import type { MoreInfoInfo } from "./ha-more-info-info";
 import "./ha-more-info-settings";
 import "./more-info-content";
 
+import "../../components/ha-quick-action-button";
+
 export interface MoreInfoDialogParams {
   entityId: string | null;
   view?: View;
@@ -479,6 +481,12 @@ export class MoreInfoDialog extends LitElement {
                       .editMode=${this._infoEditMode}
                       .hideInfo=${true}
                     ></ha-more-info-info>
+
+                    <quick-action-buttons
+                      .hass=${this.hass}
+                      .entityId=${this._entityId}
+                    >
+                    </quick-action-buttons>
                   `
                 : this._currView === "history"
                   ? html`
