@@ -180,6 +180,10 @@ export const getMyRedirects = (hasSupervisor: boolean): Redirects => ({
     component: "person",
     redirect: "/config/person",
   },
+  rooms: {
+    component: "room",
+    redirect: "/config/room",
+  },
   zones: {
     component: "zone",
     redirect: "/config/zone",

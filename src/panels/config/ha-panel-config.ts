@@ -289,6 +289,13 @@ export const configSections: { [name: string]: PageNavigation[] } = {
       iconPath: mdiMapMarkerRadius,
       iconColor: "#E48629",
     },
+    {
+      component: "room",
+      path: "/config/room",
+      translationKey: "ui.panel.config.room.caption",
+      iconPath: mdiMapMarkerRadius,
+      iconColor: "#E48629",
+    },
   ],
   general: [
     {
@@ -525,6 +532,10 @@ class HaPanelConfig extends SubscribeMixin(HassRouterPage) {
       users: {
         tag: "ha-config-users",
         load: () => import("./users/ha-config-users"),
+      },
+      room: {
+        tag: "ha-config-room",
+        load: () => import("./room/ha-config-room"),
       },
       zone: {
         tag: "ha-config-zone",

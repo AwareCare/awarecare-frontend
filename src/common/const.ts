@@ -126,6 +126,7 @@ export const FIXED_DOMAIN_ICONS = {
   plant: mdiFlower,
   proximity: mdiAppleSafari,
   remote: mdiRemote,
+  room: mdiMapMarkerRadius,
   scene: mdiPalette,
   schedule: mdiCalendarClock,
   script: mdiScriptText,
