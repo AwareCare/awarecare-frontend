@@ -46,8 +46,8 @@ const areaStatuses: AreaStatus[] = [
     icon: "mdi:check-bold",
   },
   {
-    name: "Shooter",
-    value: "shooter",
+    name: "Weapon",
+    value: "weapon",
     icon: "mdi:pistol",
   },
   {

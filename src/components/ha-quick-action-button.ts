@@ -43,18 +43,18 @@ class QuickActionButtons extends LitElement {
       <hr style="border-color: #000000" />
       <div class="row">
         <mwc-button
-          class="status-button ok"
-          @click=${() => this.updatePersonStatus("ok")}
+          class="status-button wounded"
+          @click=${() => this.updatePersonStatus("wounded")}
         >
           <div class="content-wrapper">
-            <span>
-              <ha-svg-icon
-                .path=${mdiCheckDecagram}
+            <span
+              ><ha-svg-icon
+                .path=${mdiBandage}
                 .width=${38}
                 .height=${38}
-              ></ha-svg-icon>
-            </span>
-            <span>Okay</span>
+              ></ha-svg-icon
+            ></span>
+            <span>Wounded</span>
           </div>
         </mwc-button>
         <mwc-button
@@ -72,23 +72,6 @@ class QuickActionButtons extends LitElement {
           </div>
         </mwc-button>
         <mwc-button
-          class="status-button wounded"
-          @click=${() => this.updatePersonStatus("wounded")}
-        >
-          <div class="content-wrapper">
-            <span
-              ><ha-svg-icon
-                .path=${mdiBandage}
-                .width=${38}
-                .height=${38}
-              ></ha-svg-icon
-            ></span>
-            <span>Wounded</span>
-          </div>
-        </mwc-button>
-      </div>
-      <div class="row">
-        <mwc-button
           class="status-button disciplinary"
           @click=${() => this.updatePersonStatus("disciplinary")}
           ><div class="content-wrapper">
@@ -102,6 +85,8 @@ class QuickActionButtons extends LitElement {
             <span>Disciplinary</span>
           </div></mwc-button
         >
+      </div>
+      <div class="row">
         <mwc-button
           class="status-button unaccounted"
           @click=${() => this.updatePersonStatus("unaccounted")}
@@ -130,6 +115,21 @@ class QuickActionButtons extends LitElement {
             <span>Absent</span>
           </div></mwc-button
         >
+        <mwc-button
+          class="status-button ok"
+          @click=${() => this.updatePersonStatus("ok")}
+        >
+          <div class="content-wrapper">
+            <span>
+              <ha-svg-icon
+                .path=${mdiCheckDecagram}
+                .width=${38}
+                .height=${38}
+              ></ha-svg-icon>
+            </span>
+            <span>Okay</span>
+          </div>
+        </mwc-button>
       </div>
     `;
   }
@@ -185,7 +185,7 @@ class QuickActionButtons extends LitElement {
       }
 
       .status-button.wounded {
-        --status-color: #cc00cc;
+        --status-color: #ee5253;
         border-color: var(--status-color);
       }
       .status-button.wounded .content-wrapper {

@@ -6,16 +6,16 @@ import "../ha-svg-icon";
 
 // Define the mapping object
 const stateToIconMap = {
-  good: mdiShieldCheckOutline,
+  ok: mdiShieldCheckOutline,
   medical: mdiMedicalBag,
-  danger: mdiAlarmLight,
+  wounded: mdiAlarmLight,
 };
 
 // Define the color mapping object
 const stateToColorMap = {
-  good: "#4caf50",
-  medical: "#ffc107",
-  danger: "#f44336",
+  ok: "#1DD1A1",
+  medical: "#54A0FF",
+  wounded: "#EE5253",
 };
 
 @customElement("state-status")
