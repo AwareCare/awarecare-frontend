@@ -7,6 +7,14 @@ import {
   html,
   nothing,
 } from "lit";
+import {
+  mdiCheckDecagram,
+  mdiMedicalBag,
+  mdiBandage,
+  mdiSchool,
+  mdiAccountAlert,
+  mdiAccountCancel,
+} from "@mdi/js";
 import { customElement, property, state } from "lit/decorators";
 import { ifDefined } from "lit/directives/if-defined";
 import { applyThemesOnElement } from "../../../common/dom/apply_themes_on_element";
@@ -25,6 +33,17 @@ import "../components/hui-image";
 import { createEntityNotFoundWarning } from "../components/hui-warning";
 import { LovelaceCard, LovelaceCardEditor } from "../types";
 import { PictureEntityCardConfig } from "./types";
+
+import "../../../components/ha-svg-icon";
+
+const stateInfoMap = {
+  ok: { color: "#c8d6e5", icon: mdiCheckDecagram },
+  medical: { color: "#54A0FF", icon: mdiMedicalBag },
+  wounded: { color: "#ee5253", icon: mdiBandage },
+  disciplinary: { color: "#F368E0", icon: mdiSchool },
+  unaccounted: { color: "#01A3A4", icon: mdiAccountAlert },
+  absent: { color: "#666666", icon: mdiAccountCancel },
+};
 
 @customElement("hui-picture-entity-card")
 class HuiPictureEntityCard extends LitElement implements LovelaceCard {
@@ -118,7 +137,7 @@ class HuiPictureEntityCard extends LitElement implements LovelaceCard {
       `;
     }
 
-    const name = this._config.name || computeStateName(stateObj);
+    const name = computeStateName(stateObj) || this._config.name;
     const entityState = this.hass.formatEntityState(stateObj);
 
     let footer: TemplateResult | string = "";
@@ -126,7 +145,6 @@ class HuiPictureEntityCard extends LitElement implements LovelaceCard {
       footer = html`
         <div class="footer both">
           <div>${name}</div>
-          <div>${entityState}</div>
         </div>
       `;
     } else if (this._config.show_name) {
@@ -137,33 +155,57 @@ class HuiPictureEntityCard extends LitElement implements LovelaceCard {
 
     const domain = computeDomain(this._config.entity);
 
+    const stateClass = stateObj?.attributes?.status.toLowerCase();
+    const isNotOk = stateClass !== "ok";
+    const stateInfo = stateInfoMap[stateClass];
+
+    const stateColor = stateInfo?.color || "#C8D6E5";
+    const stateIcon = stateInfo?.icon || mdiCheckDecagram;
+
     return html`
-      <ha-card>
-        <hui-image
-          .hass=${this.hass}
-          .image=${domain === "image"
-            ? computeImageUrl(stateObj as ImageEntity)
-            : this._config.image}
-          .stateImage=${this._config.state_image}
-          .stateFilter=${this._config.state_filter}
-          .cameraImage=${domain === "camera"
-            ? this._config.entity
-            : this._config.camera_image}
-          .cameraView=${this._config.camera_view}
-          .entity=${this._config.entity}
-          .aspectRatio=${this._config.aspect_ratio}
-          .fitMode=${this._config.fit_mode}
-          @action=${this._handleAction}
-          .actionHandler=${actionHandler({
-            hasHold: hasAction(this._config!.hold_action),
-            hasDoubleClick: hasAction(this._config!.double_tap_action),
-          })}
-          tabindex=${ifDefined(
-            hasAction(this._config.tap_action) || this._config.entity
-              ? "0"
-              : undefined
-          )}
-        ></hui-image>
+      <ha-card
+        style=${isNotOk ? `border-color: ${stateColor};` : "border: none;"}
+      >
+        ${isNotOk
+          ? html`<div class="badge" style="background-color: ${stateColor}">
+              <ha-svg-icon
+                .path=${stateIcon}
+                .width=${18}
+                .height=${18}
+              ></ha-svg-icon>
+            </div>`
+          : ""}
+        <div
+          class="image-container"
+          style="border-radius: 8px; overflow: hidden; height: 100%;"
+        >
+          <hui-image
+            .hass=${this.hass}
+            .image=${domain === "image"
+              ? computeImageUrl(stateObj as ImageEntity)
+              : this._config.image}
+            .stateImage=${this._config.state_image}
+            .stateFilter=${this._config.state_filter}
+            .cameraImage=${domain === "camera"
+              ? this._config.entity
+              : this._config.camera_image}
+            .cameraView=${this._config.camera_view}
+            .entity=${this._config.entity}
+            .aspectRatio=${this._config.aspect_ratio}
+            .fitMode=${this._config.fit_mode}
+            @action=${this._handleAction}
+            .actionHandler=${actionHandler({
+              hasHold: hasAction(this._config!.hold_action),
+              hasDoubleClick: hasAction(this._config!.double_tap_action),
+            })}
+            tabindex=${ifDefined(
+              hasAction(this._config.tap_action) || this._config.entity
+                ? "0"
+                : undefined
+            )}
+          ></hui-image>
+        </div>
+
         ${footer}
       </ha-card>
     `;
@@ -173,10 +215,10 @@ class HuiPictureEntityCard extends LitElement implements LovelaceCard {
     return css`
       ha-card {
         min-height: 75px;
-        overflow: hidden;
         position: relative;
         height: 100%;
         box-sizing: border-box;
+        border: 4px solid #c8d6e5;
       }
 
       hui-image {
@@ -195,15 +237,13 @@ class HuiPictureEntityCard extends LitElement implements LovelaceCard {
         left: 0;
         right: 0;
         bottom: 0;
-        background-color: var(
-          --ha-picture-card-background-color,
-          rgba(0, 0, 0, 0.3)
-        );
-        padding: 16px;
-        font-size: 16px;
+        background-image: linear-gradient(0deg, #3f3f3f, #4f4f4fd9, #ffffff00);
+        padding: 8px;
+        font-size: 12px;
         line-height: 16px;
-        color: var(--ha-picture-card-text-color, white);
+        color: #81cfd2;
         pointer-events: none;
+        border-radius: 0 0 8px 8px;
       }
 
       .both {
@@ -213,6 +253,18 @@ class HuiPictureEntityCard extends LitElement implements LovelaceCard {
 
       .single {
         text-align: center;
+      }
+
+      .badge {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        color: white;
+        padding: 6px;
+        border-radius: 50%;
+        text-align: center;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+        z-index: 1;
       }
     `;
   }

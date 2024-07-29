@@ -26,7 +26,7 @@ import { createEntityNotFoundWarning } from "./hui-warning";
 const stateToColorMap = {
   ok: "#1DD1A1",
   medical: "#54A0FF",
-  wounded: "#CC00CC",
+  wounded: "#ee5253",
   disciplinary: "#F368E0",
   unaccounted: "#01A3A4",
   absent: "#666666",
@@ -181,7 +181,7 @@ export class HuiGenericEntityRow extends LitElement {
               hasDoubleClick: hasAction(this.config!.double_tap_action),
             })}
           >
-            <div class="state"><slot></slot></div>
+            <div class="state">${stateClass.toUpperCase()}</div>
           </div>`
         : html`<slot></slot>`}
     `;

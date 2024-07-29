@@ -18,6 +18,9 @@ class QuickActionButtons extends LitElement {
 
   @property({ attribute: "entity-id" }) public entityId!: string;
 
+  @property({ attribute: "on-status-updated", type: Object })
+  public onStatusUpdated!: () => void;
+
   @state() private _error!: string;
 
   private async updatePersonStatus(status: string) {
@@ -33,6 +36,8 @@ class QuickActionButtons extends LitElement {
         state: stateObj.state,
         attributes: state_attributes,
       });
+
+      this.onStatusUpdated();
     } catch (e: any) {
       this._error = e.body?.message || "Unknown error";
     }
