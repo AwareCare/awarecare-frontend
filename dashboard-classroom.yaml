@@ -1,0 +1,509 @@
+views:
+  - path: default_view
+    title: "Classroom #2024"
+    cards:
+      - type: entities
+        entities:
+          - person.myra_aguirre
+        state_color: false
+        show_header_toggle: true
+        title: " Section #2024"
+      - square: true
+        type: grid
+        columns: 4
+        cards:
+          - show_state: true
+            show_name: true
+            camera_view: live
+            type: picture-entity
+            entity: person.eli_lazos
+            aspect_ratio: "1"
+            name: Eli
+            image: /api/image/serve/331abdd0077b63ba0847bd0d7b656309/512x512
+          - show_state: true
+            show_name: true
+            camera_view: live
+            type: picture-entity
+            entity: person.juan_dela_cruz
+            aspect_ratio: "1"
+            name: Aerth
+            image: /api/image/serve/8b3a0b76b793c59ce6ad3d3077b6407b/512x512
+          - show_state: true
+            show_name: true
+            camera_view: live
+            type: picture-entity
+            entity: person.clay_targaryen
+            aspect_ratio: "1"
+            image: /api/image/serve/4d68f78e91868949bebce8f87925f354/512x512
+            name: Hiraya
+          - show_state: true
+            show_name: true
+            camera_view: live
+            type: picture-entity
+            entity: person.rod_stewart
+            aspect_ratio: "1"
+            name: Jabs
+            image: /api/image/serve/36072d39ff8be619c22206e18c1447b0/512x512
+          - show_state: true
+            show_name: true
+            camera_view: live
+            type: picture-entity
+            entity: person.zach_doe
+            aspect_ratio: "1"
+            name: Maria
+            image: /api/image/serve/79bef67b8b9bb5872f9ee02c44b0f208/512x512
+          - show_state: true
+            show_name: true
+            camera_view: live
+            type: picture-entity
+            aspect_ratio: "1"
+            entity: person.funkz
+            image: /api/image/serve/f0c90052aa6c857f2525a0591c06faca/512x512
+            name: John
+          - show_state: true
+            show_name: true
+            camera_view: live
+            type: picture-entity
+            aspect_ratio: "1"
+            entity: person.benjamin_wilson
+            name: Benj
+            image: /api/image/serve/13ff7362572cc11a60d5b031f78dca19/512x512
+          - show_state: true
+            show_name: true
+            camera_view: live
+            type: picture-entity
+            aspect_ratio: "1"
+            name: Grace
+            entity: person.grace_lewis
+            image: /api/image/serve/871afe051ec9ef28c948fac0d7c86f2c/512x512
+          - show_state: true
+            show_name: true
+            camera_view: live
+            type: picture-entity
+            aspect_ratio: "1"
+            name: James
+            entity: person.james_davis
+            image: /api/image/serve/48b7183737c2c73a98bf6670b300f499/512x512
+          - show_state: true
+            show_name: true
+            camera_view: live
+            type: picture-entity
+            aspect_ratio: "1"
+            name: Luke
+            entity: person.lucas_anderson
+            image: /api/image/serve/4950d1d298741beb39dd1b6fc99f7cfa/512x512
+          - show_state: true
+            show_name: true
+            camera_view: live
+            type: picture-entity
+            aspect_ratio: "1"
+            name: Mia
+            image: /api/image/serve/32aef1893816680a1531f635f2454ff8/512x512
+            entity: person.mia_wilson
+          - show_state: true
+            show_name: true
+            camera_view: live
+            type: picture-entity
+            aspect_ratio: "1"
+            name: Oli
+            entity: person.oliver_brown
+            image: /api/image/serve/658fde268cca702acf8ebe7cb932d43d/512x512
+        title: "Students : "
+      - square: true
+        type: grid
+        cards:
+          - show_name: true
+            show_icon: true
+            type: button
+            tap_action:
+              action: call-service
+              service: ""
+            entity: input_button.weapon
+          - show_name: true
+            show_icon: true
+            type: button
+            tap_action:
+              action: toggle
+            entity: input_button.fire
+            icon: ""
+            show_state: false
+            hold_action:
+              action: toggle
+          - show_name: true
+            show_icon: true
+            type: button
+            tap_action:
+              action: toggle
+            entity: input_button.weather
+            icon: ""
+            show_state: false
+          - show_name: true
+            show_icon: true
+            type: button
+            tap_action:
+              action: toggle
+            entity: input_button.medical
+            icon: ""
+            show_state: false
+          - show_name: true
+            show_icon: true
+            type: button
+            tap_action:
+              action: toggle
+            entity: input_button.suspicious
+            icon: ""
+            show_state: false
+          - show_name: true
+            show_icon: true
+            type: button
+            tap_action:
+              action: toggle
+            entity: input_button.conflict
+            icon: ""
+        columns: 6
+        title: Initiate Emergency
+      - type: entity-filter
+        entities:
+          - person.ashley_blonde
+          - person.eli_lazos
+          - person.benjamin_wilson
+          - person.oliver_brown
+          - person.clay_targaryen
+          - person.rod_stewart
+          - person.mia_wilson
+          - person.funkz
+          - person.grace_lewis
+          - person.james_davis
+          - person.juan_dela_cruz
+          - person.lucas_anderson
+        state_filter:
+          - attribute: status
+            operator: "!="
+            value: ok
+        card:
+          type: entities
+        sort:
+          method: last_updated
+          reverse: true
+  - type: sections
+    max_columns: 2
+    title: TEst
+    path: "Classroom #1995"
+    icon: mdi:google-classroom
+    subview: false
+    sections:
+      - type: grid
+        cards:
+          - type: entities
+            entities:
+              - entity: person.myra_aguirre
+            show_header_toggle: false
+        title: " Classroom #1995"
+      - type: grid
+        cards:
+          - square: true
+            type: grid
+            cards:
+              - show_name: true
+                show_icon: true
+                type: button
+                tap_action:
+                  action: toggle
+                entity: input_button.weapon
+              - show_name: true
+                show_icon: true
+                type: button
+                tap_action:
+                  action: toggle
+                entity: input_button.fire
+              - show_name: true
+                show_icon: true
+                type: button
+                tap_action:
+                  action: toggle
+                entity: input_button.medical
+              - show_name: true
+                show_icon: true
+                type: button
+                tap_action:
+                  action: toggle
+                entity: input_button.weather
+              - show_name: true
+                show_icon: true
+                type: button
+                tap_action:
+                  action: toggle
+                entity: input_button.suspicious
+              - show_name: true
+                show_icon: true
+                type: button
+                tap_action:
+                  action: toggle
+                entity: input_button.conflict
+            columns: 6
+        title: Initiate Emergency
+      - type: grid
+        cards:
+          - square: true
+            type: grid
+            columns: 4
+            cards:
+              - show_state: true
+                show_name: true
+                camera_view: live
+                type: picture-entity
+                entity: person.eli_lazos
+                aspect_ratio: "1"
+                name: Eli
+                image: /api/image/serve/331abdd0077b63ba0847bd0d7b656309/512x512
+              - show_state: true
+                show_name: true
+                camera_view: live
+                type: picture-entity
+                entity: person.juan_dela_cruz
+                aspect_ratio: "1"
+                name: Aerth
+                image: /api/image/serve/8b3a0b76b793c59ce6ad3d3077b6407b/512x512
+              - show_state: true
+                show_name: true
+                camera_view: live
+                type: picture-entity
+                entity: person.clay_targaryen
+                aspect_ratio: "1"
+                image: /api/image/serve/4d68f78e91868949bebce8f87925f354/512x512
+                name: Hiraya
+              - show_state: true
+                show_name: true
+                camera_view: live
+                type: picture-entity
+                entity: person.rod_stewart
+                aspect_ratio: "1"
+                name: Jabs
+                image: /api/image/serve/36072d39ff8be619c22206e18c1447b0/512x512
+              - show_state: true
+                show_name: true
+                camera_view: live
+                type: picture-entity
+                entity: person.zach_doe
+                aspect_ratio: "1"
+                name: Maria
+                image: /api/image/serve/79bef67b8b9bb5872f9ee02c44b0f208/512x512
+              - show_state: true
+                show_name: true
+                camera_view: live
+                type: picture-entity
+                aspect_ratio: "1"
+                entity: person.funkz
+                image: /api/image/serve/f0c90052aa6c857f2525a0591c06faca/512x512
+                name: John
+              - show_state: true
+                show_name: true
+                camera_view: live
+                type: picture-entity
+                aspect_ratio: "1"
+                entity: person.benjamin_wilson
+                name: Benj
+                image: /api/image/serve/13ff7362572cc11a60d5b031f78dca19/512x512
+              - show_state: true
+                show_name: true
+                camera_view: live
+                type: picture-entity
+                aspect_ratio: "1"
+                name: Grace
+                entity: person.grace_lewis
+                image: /api/image/serve/871afe051ec9ef28c948fac0d7c86f2c/512x512
+              - show_state: true
+                show_name: true
+                camera_view: live
+                type: picture-entity
+                aspect_ratio: "1"
+                name: James
+                entity: person.james_davis
+                image: /api/image/serve/48b7183737c2c73a98bf6670b300f499/512x512
+              - show_state: true
+                show_name: true
+                camera_view: live
+                type: picture-entity
+                aspect_ratio: "1"
+                name: Luke
+                entity: person.lucas_anderson
+                image: /api/image/serve/4950d1d298741beb39dd1b6fc99f7cfa/512x512
+              - show_state: true
+                show_name: true
+                camera_view: live
+                type: picture-entity
+                aspect_ratio: "1"
+                name: Mia
+                image: /api/image/serve/32aef1893816680a1531f635f2454ff8/512x512
+                entity: person.mia_wilson
+              - show_state: true
+                show_name: true
+                camera_view: live
+                type: picture-entity
+                aspect_ratio: "1"
+                name: Oli
+                entity: person.oliver_brown
+                image: /api/image/serve/658fde268cca702acf8ebe7cb932d43d/512x512
+            title: "Students : "
+      - type: grid
+        cards:
+          - type: entity-filter
+            entities:
+              - person.ashley_blonde
+              - person.eli_lazos
+              - person.benjamin_wilson
+              - person.oliver_brown
+              - person.clay_targaryen
+              - person.rod_stewart
+              - person.mia_wilson
+              - person.funkz
+              - person.grace_lewis
+              - person.james_davis
+              - person.juan_dela_cruz
+              - person.lucas_anderson
+            state_filter:
+              - attribute: status
+                operator: "!="
+                value: ok
+            card:
+              type: entities
+            sort:
+              method: last_updated
+              reverse: true
+        title: Alerts!
+    cards: []
+  - icon: mdi:google-classroom
+    title: "#1995"
+    path: "1995"
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        cards:
+          - square: true
+            type: grid
+            columns: 4
+            cards:
+              - show_state: true
+                show_name: true
+                camera_view: live
+                type: picture-entity
+                entity: person.eli_lazos
+                aspect_ratio: "1"
+                name: Eli
+                image: /api/image/serve/331abdd0077b63ba0847bd0d7b656309/512x512
+              - show_state: true
+                show_name: true
+                camera_view: live
+                type: picture-entity
+                entity: person.juan_dela_cruz
+                aspect_ratio: "1"
+                name: Aerth
+                image: /api/image/serve/8b3a0b76b793c59ce6ad3d3077b6407b/512x512
+              - show_state: true
+                show_name: true
+                camera_view: live
+                type: picture-entity
+                entity: person.clay_targaryen
+                aspect_ratio: "1"
+                image: /api/image/serve/4d68f78e91868949bebce8f87925f354/512x512
+                name: Hiraya
+              - show_state: true
+                show_name: true
+                camera_view: live
+                type: picture-entity
+                entity: person.rod_stewart
+                aspect_ratio: "1"
+                name: Jabs
+                image: /api/image/serve/36072d39ff8be619c22206e18c1447b0/512x512
+              - show_state: true
+                show_name: true
+                camera_view: live
+                type: picture-entity
+                entity: person.zach_doe
+                aspect_ratio: "1"
+                name: Maria
+                image: /api/image/serve/79bef67b8b9bb5872f9ee02c44b0f208/512x512
+              - show_state: true
+                show_name: true
+                camera_view: live
+                type: picture-entity
+                aspect_ratio: "1"
+                entity: person.funkz
+                image: /api/image/serve/f0c90052aa6c857f2525a0591c06faca/512x512
+                name: John
+              - show_state: true
+                show_name: true
+                camera_view: live
+                type: picture-entity
+                aspect_ratio: "1"
+                entity: person.benjamin_wilson
+                name: Benj
+                image: /api/image/serve/13ff7362572cc11a60d5b031f78dca19/512x512
+              - show_state: true
+                show_name: true
+                camera_view: live
+                type: picture-entity
+                aspect_ratio: "1"
+                name: Grace
+                entity: person.grace_lewis
+                image: /api/image/serve/871afe051ec9ef28c948fac0d7c86f2c/512x512
+              - show_state: true
+                show_name: true
+                camera_view: live
+                type: picture-entity
+                aspect_ratio: "1"
+                name: James
+                entity: person.james_davis
+                image: /api/image/serve/48b7183737c2c73a98bf6670b300f499/512x512
+              - show_state: true
+                show_name: true
+                camera_view: live
+                type: picture-entity
+                aspect_ratio: "1"
+                name: Luke
+                entity: person.lucas_anderson
+                image: /api/image/serve/4950d1d298741beb39dd1b6fc99f7cfa/512x512
+              - show_state: true
+                show_name: true
+                camera_view: live
+                type: picture-entity
+                aspect_ratio: "1"
+                name: Mia
+                image: /api/image/serve/32aef1893816680a1531f635f2454ff8/512x512
+                entity: person.mia_wilson
+              - show_state: true
+                show_name: true
+                camera_view: live
+                type: picture-entity
+                aspect_ratio: "1"
+                name: Oli
+                entity: person.oliver_brown
+                image: /api/image/serve/658fde268cca702acf8ebe7cb932d43d/512x512
+            title: "Students : "
+      - type: grid
+        cards:
+          - type: entity-filter
+            entities:
+              - person.ashley_blonde
+              - person.eli_lazos
+              - person.benjamin_wilson
+              - person.oliver_brown
+              - person.clay_targaryen
+              - person.rod_stewart
+              - person.mia_wilson
+              - person.funkz
+              - person.grace_lewis
+              - person.james_davis
+              - person.juan_dela_cruz
+              - person.lucas_anderson
+            state_filter:
+              - attribute: status
+                operator: "!="
+                value: ok
+            card:
+              type: entities
+            sort:
+              method: first_updated
+              reverse: true
+        title: Alert!
