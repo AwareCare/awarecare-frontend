@@ -7,12 +7,14 @@ import {
   html,
   nothing,
 } from "lit";
+
 import { customElement, property, state } from "lit/decorators";
 import { repeat } from "lit/directives/repeat";
 import { styleMap } from "lit/directives/style-map";
 import "../../../components/ha-icon-button";
 import "../../../components/ha-sortable";
 import "../../../components/ha-svg-icon";
+import "../../../components/ha-classroom-header-section";
 import type { LovelaceViewElement } from "../../../data/lovelace";
 import type { LovelaceViewConfig } from "../../../data/lovelace/config/view";
 import { showConfirmationDialog } from "../../../dialogs/generic/show-dialog-box";
@@ -94,6 +96,8 @@ export class SectionsView extends LitElement implements LovelaceViewElement {
         draggable-selector=".section"
         .rollback=${false}
       >
+        <ha-classroom-header-section></ha-classroom-header-section>
+
         <div
           class="container"
           style=${styleMap({

@@ -177,7 +177,11 @@ class DialogPersonDetail extends LitElement {
               required
             >
               <ha-list-item value="ok">Ok</ha-list-item>
-              <ha-list-item value="danger">Danger</ha-list-item>
+              <ha-list-item value="wounded">Wounded</ha-list-item>
+              <ha-list-item value="medical">Medical</ha-list-item>
+              <ha-list-item value="disciplinary">Disciplinary</ha-list-item>
+              <ha-list-item value="unaccounted">Unaccounted</ha-list-item>
+              <ha-list-item value="absent">Absent</ha-list-item>
             </ha-select>
 
             <ha-formfield
