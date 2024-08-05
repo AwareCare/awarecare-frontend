@@ -1013,6 +1013,15 @@ class HUIRoot extends LitElement {
           display: flex;
           align-items: center;
         }
+        hui-view {
+          background-image: linear-gradient(
+            246deg,
+            #009cc9,
+            #34494f,
+            #2a2a28,
+            #273031
+          );
+        }
         ha-tabs {
           width: 100%;
           height: 100%;

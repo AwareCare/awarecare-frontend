@@ -103,6 +103,11 @@ class HuiGridCard extends HuiStackCard<GridCardConfig> {
           grid-row: unset;
           grid-column: unset;
         }
+
+        .card-header {
+          color: #81cfd2;
+          font-size: 18px;
+        }
       `,
     ];
   }

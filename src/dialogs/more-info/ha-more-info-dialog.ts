@@ -135,7 +135,8 @@ export class MoreInfoDialog extends LitElement {
     this._childView = undefined;
     this._infoEditMode = false;
     this._initialView = DEFAULT_VIEW;
-    fireEvent(this, "dialog-closed", { dialog: this.localName });
+
+    fireEvent(this, "dialog-closed", { dialog: "ha-more-info-dialog" });
   }
 
   private shouldShowEditIcon(
@@ -485,6 +486,7 @@ export class MoreInfoDialog extends LitElement {
                     <quick-action-buttons
                       .hass=${this.hass}
                       .entityId=${this._entityId}
+                      .onStatusUpdated=${this.closeDialog}
                     >
                     </quick-action-buttons>
                   `

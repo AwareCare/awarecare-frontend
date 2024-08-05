@@ -57,6 +57,8 @@ import "./ha-sortable";
 import "./ha-svg-icon";
 import "./user/ha-user-badge";
 
+import "./ac-horizontal-logo-svg";
+
 const SHOW_AFTER_SPACER = ["config", "developer-tools"];
 
 const SUPPORT_SCROLL_IF_NEEDED = "scrollIntoViewIfNeeded" in document.body;
@@ -360,7 +362,14 @@ class HaSidebar extends SubscribeMixin(LitElement) {
         ? html`<mwc-button outlined @click=${this._closeEditMode}>
             ${this.hass.localize("ui.sidebar.done")}
           </mwc-button>`
-        : html`<div class="title">Home Assistant</div>`}
+        : html`
+            <div class="title">
+              <!-- Display this image path /workspaces/awarecare-frontend/gallery/public/images/logo-with-text.png on img tag -->
+              <ac-horizontal-logo-svg
+                title="Awarecare"
+              ></ac-horizontal-logo-svg>
+            </div>
+          `}
     </div>`;
   }
 
@@ -828,6 +837,8 @@ class HaSidebar extends SubscribeMixin(LitElement) {
           background-color: var(--sidebar-background-color);
           width: 100%;
           box-sizing: border-box;
+          background-image: linear-gradient(55deg, #175b6f, #263235, #2a2826);
+          background-color: #263235;
         }
         .menu {
           height: var(--header-height);
@@ -1086,6 +1097,11 @@ class HaSidebar extends SubscribeMixin(LitElement) {
         .menu ha-icon-button {
           -webkit-transform: scaleX(var(--scale-direction));
           transform: scaleX(var(--scale-direction));
+        }
+
+        ac-horizontal-logo-svg {
+          height: 56px;
+          width: 124px;
         }
       `,
     ];

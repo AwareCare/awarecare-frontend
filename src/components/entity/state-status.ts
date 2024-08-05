@@ -1,21 +1,23 @@
-import { mdiShieldCheckOutline, mdiMedicalBag, mdiAlarmLight } from "@mdi/js";
+import {
+  mdiCheckDecagram,
+  mdiMedicalBag,
+  mdiBandage,
+  mdiSchool,
+  mdiAccountAlert,
+  mdiAccountCancel,
+} from "@mdi/js";
 import { css, html, LitElement } from "lit";
 import { customElement, property } from "lit/decorators";
 import type { HomeAssistant } from "../../types";
 import "../ha-svg-icon";
 
-// Define the mapping object
-const stateToIconMap = {
-  ok: mdiShieldCheckOutline,
-  medical: mdiMedicalBag,
-  wounded: mdiAlarmLight,
-};
-
-// Define the color mapping object
-const stateToColorMap = {
-  ok: "#1DD1A1",
-  medical: "#54A0FF",
-  wounded: "#EE5253",
+const stateInfoMap = {
+  ok: { color: "#1DD1A1", icon: mdiCheckDecagram },
+  medical: { color: "#54A0FF", icon: mdiMedicalBag },
+  wounded: { color: "#ee5253", icon: mdiBandage },
+  disciplinary: { color: "#F368E0", icon: mdiSchool },
+  unaccounted: { color: "#01A3A4", icon: mdiAccountAlert },
+  absent: { color: "#666666", icon: mdiAccountCancel },
 };
 
 @customElement("state-status")
@@ -44,16 +46,17 @@ class StateStatus extends LitElement {
   `;
 
   render() {
-    const state = this.hass.formatEntityState(this.stateObj).toLowerCase();
-    const iconPath = stateToIconMap[state] || null;
-    const stateColor = stateToColorMap[state] || "inherit";
+    const stateClass = this.stateObj?.attributes?.status.toLowerCase();
+    const stateInfo = stateInfoMap[stateClass];
+    const stateColor = stateInfo?.color || "#C8D6E5";
+    const stateIcon = stateInfo?.icon || mdiCheckDecagram;
 
     return html`
-      <div class="state ${state}" style="color: ${stateColor}">
+      <div class="state ${stateClass}" style="color: ${stateColor}">
         <span class="icon">
-          <ha-svg-icon .path=${iconPath}></ha-svg-icon>
+          <ha-svg-icon .path=${stateIcon}></ha-svg-icon>
         </span>
-        <span class="state-text">${state}</span>
+        <span class="state-text">${stateClass}</span>
       </div>
     `;
   }
