@@ -43,6 +43,14 @@ class StateStatus extends LitElement {
     .icon {
       margin-right: 8px;
     }
+
+    .state-type-text {
+      font-size: 11px;
+      font-weight: bold;
+      text-transform: uppercase;
+      text-align: right;
+      color: gray;
+    }
   `;
 
   render() {
@@ -57,6 +65,9 @@ class StateStatus extends LitElement {
           <ha-svg-icon .path=${stateIcon}></ha-svg-icon>
         </span>
         <span class="state-text">${stateClass}</span>
+      </div>
+      <div class="state-type-text">
+        <span class="state-type-text">[State Type/s]</span>
       </div>
     `;
   }
