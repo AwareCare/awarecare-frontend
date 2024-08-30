@@ -19,6 +19,8 @@ import { HuiCard } from "../cards/hui-card";
 import { computeCardSize } from "../common/compute-card-size";
 import type { Lovelace, LovelaceBadge, LovelaceCard } from "../types";
 
+import "./map-view";
+
 // Find column with < 5 size, else smallest column
 const getColumnIndex = (columnSizes: number[], size: number) => {
   let minIndex = 0;
@@ -46,7 +48,8 @@ export class MasonryView extends LitElement implements LovelaceViewElement {
 
   @property({ type: Number }) public index?: number;
 
-  @property({ type: Boolean }) public isStrategy = false;
+  @property({ type: Boolean, attribute: "is-strategy" }) public isStrategy =
+    false;
 
   @property({ attribute: false }) public cards: HuiCard[] = [];
 
@@ -78,6 +81,7 @@ export class MasonryView extends LitElement implements LovelaceViewElement {
 
   protected render(): TemplateResult {
     return html`
+      ${this._isMapRoute() ? html`<map-view></map-view>` : ""}
       ${this.badges.length > 0
         ? html`<div class="badges">${this.badges}</div>`
         : ""}
@@ -99,6 +103,10 @@ export class MasonryView extends LitElement implements LovelaceViewElement {
           `
         : ""}
     `;
+  }
+
+  private _isMapRoute(): boolean {
+    return window.location.pathname.includes("map");
   }
 
   private _initMqls() {

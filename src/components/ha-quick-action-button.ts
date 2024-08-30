@@ -234,8 +234,8 @@ class QuickActionButtons extends LitElement {
     return css`
       .row {
         display: flex;
-        justify-content: space-between; /* Adjusts spacing between buttons */
-        margin: 16px; /* Adds spacing between rows */
+        justify-content: space-between;
+        margin: 16px;
       }
       .content-wrapper {
         display: flex;
