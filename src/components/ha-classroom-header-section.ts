@@ -9,15 +9,63 @@ import {
 } from "@mdi/js";
 
 import { CSSResultGroup, LitElement, css, html } from "lit";
-
-import { property } from "lit/decorators";
-
+import { property, state } from "lit/decorators";
 import "./ha-svg-icon";
-
 import { HomeAssistant } from "../types";
 
 class ClassroomHeaderSection extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
+
+  @state() private roomName: string = "room_111";
+
+  @state() private storedValue: string = "";
+
+  connectedCallback() {
+    super.connectedCallback();
+    this._getStoredValue();
+    this._subscribeToStateChanges();
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    if (this._unsub) {
+      this._unsub();
+    }
+  }
+
+  private _getStoredValue() {
+    const entityId = "input_text.command_store";
+    const entity = this.hass.states[entityId];
+
+    if (entity) {
+      try {
+        this.storedValue = JSON.parse(entity.state);
+      } catch (err) {
+        handleError(err);
+      }
+    }
+  }
+
+  private _subscribeToStateChanges() {
+    this._unsub = this.hass.connection.subscribeMessage(
+      (message) => {
+        const entityId = "input_text.command_store";
+        const event = message.event;
+
+        if (event && event.data.entity_id === entityId) {
+          try {
+            this.storedValue = JSON.parse(event.data.new_state.state);
+          } catch (error) {
+            handleError("Failed to parse stored value:", error);
+          }
+        }
+      },
+      {
+        type: "subscribe_events",
+        event_type: "state_changed",
+      }
+    );
+  }
 
   protected render() {
     return html`
@@ -41,12 +89,16 @@ class ClassroomHeaderSection extends LitElement {
                   .width=${32}
                   .height=${32}
                 ></ha-svg-icon></span
-              >INITIATE EMERGENCY
+              >INITIATE EMERGENCY :
+              <span>${(this.storedValue?.value || "").toUpperCase()}</span>
             </h3>
           </div>
 
           <div class="row">
-            <mwc-button class="status-button weapon"
+            <mwc-button
+              class="status-button weapon"
+              id="room_status_${this.roomName}_state_weapon"
+              @click=${this._sendRoomStatus}
               ><div class="content-wrapper">
                 <span
                   ><ha-svg-icon
@@ -59,7 +111,10 @@ class ClassroomHeaderSection extends LitElement {
               </div>
             </mwc-button>
 
-            <mwc-button class="status-button fire"
+            <mwc-button
+              class="status-button fire"
+              id="room_status_${this.roomName}_state_fire"
+              @click=${this._sendRoomStatus}
               ><div class="content-wrapper">
                 <span
                   ><ha-svg-icon
@@ -72,7 +127,10 @@ class ClassroomHeaderSection extends LitElement {
               </div>
             </mwc-button>
 
-            <mwc-button class="status-button medical"
+            <mwc-button
+              class="status-button medical"
+              id="room_status_${this.roomName}_state_medical"
+              @click=${this._sendRoomStatus}
               ><div class="content-wrapper">
                 <span
                   ><ha-svg-icon
@@ -85,7 +143,10 @@ class ClassroomHeaderSection extends LitElement {
               </div>
             </mwc-button>
 
-            <mwc-button class="status-button weather"
+            <mwc-button
+              class="status-button weather"
+              id="room_status_${this.roomName}_state_weather"
+              @click=${this._sendRoomStatus}
               ><div class="content-wrapper">
                 <span
                   ><ha-svg-icon
@@ -98,7 +159,10 @@ class ClassroomHeaderSection extends LitElement {
               </div>
             </mwc-button>
 
-            <mwc-button class="status-button suspicious"
+            <mwc-button
+              class="status-button suspicious"
+              id="room_status_${this.roomName}_state_suspicious"
+              @click=${this._sendRoomStatus}
               ><div class="content-wrapper">
                 <span
                   ><ha-svg-icon
@@ -111,7 +175,10 @@ class ClassroomHeaderSection extends LitElement {
               </div>
             </mwc-button>
 
-            <mwc-button class="status-button conflict"
+            <mwc-button
+              class="status-button conflict"
+              id="room_status_${this.roomName}_state_conflict"
+              @click=${this._sendRoomStatus}
               ><div class="content-wrapper">
                 <span
                   ><ha-svg-icon
@@ -127,6 +194,23 @@ class ClassroomHeaderSection extends LitElement {
         </div>
       </div>
     `;
+  }
+
+  private _sendRoomStatus(ev: MouseEvent) {
+    const button = ev.currentTarget as HTMLButtonElement;
+    const status = button.id.split("_").pop();
+
+    this.storedValue.roomStatus = status;
+
+    const data = {
+      ...this.storedValue,
+    };
+
+    this.hass.callService = this.hass.callService.bind(this.hass);
+    this.hass.callService("input_text", "set_value", {
+      entity_id: "input_text.command_store",
+      value: JSON.stringify(data),
+    });
   }
 
   static get styles(): CSSResultGroup {
