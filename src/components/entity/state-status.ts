@@ -59,6 +59,11 @@ class StateStatus extends LitElement {
     const stateColor = stateInfo?.color || "#C8D6E5";
     const stateIcon = stateInfo?.icon || mdiCheckDecagram;
 
+    const contextClass = this.stateObj?.attributes?.context?.toLowerCase();
+    // const contextInfo = stateInfoMap[contextClass];
+    // const contextColor = stateInfo?.color || "#C8D6E5";
+    // const contextIcon = contextIcon?.icon || mdiCheckDecagram;
+
     return html`
       <div class="state ${stateClass}" style="color: ${stateColor}">
         <span class="icon">
@@ -67,7 +72,7 @@ class StateStatus extends LitElement {
         <span class="state-text">${stateClass}</span>
       </div>
       <div class="state-type-text">
-        <span class="state-type-text">[State Type/s]</span>
+        <span class="state-type-text">${contextClass}</span>
       </div>
     `;
   }

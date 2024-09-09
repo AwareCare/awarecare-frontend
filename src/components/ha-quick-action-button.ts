@@ -36,6 +36,8 @@ class QuickActionButtons extends LitElement {
 
   @state() private updatedStatus = "";
 
+  @state() private updatedContext = "";
+
   followActions = ["medical", "disciplinary"];
 
   buttonMapping = {
@@ -132,6 +134,30 @@ class QuickActionButtons extends LitElement {
     }
   }
 
+  private async updatePersonContext(context: string) {
+    this._error = "";
+    this.updatedContext = context;
+
+    const stateObj = this.hass.states[this.entityId];
+    const state_attributes = stateObj.attributes;
+
+    state_attributes.context = context;
+    try {
+      await this.hass.callApi("POST", "states/" + this.entityId, {
+        state: stateObj.state,
+        attributes: state_attributes,
+      });
+
+      if (this.followActions.includes(context)) {
+        this.isFollowupAction = true;
+      }
+
+      this.onStatusUpdated();
+    } catch (e: any) {
+      this._error = e.body?.message || "Unknown error";
+    }
+  }
+
   private resetActions = () => {
     this.isFollowupAction = false;
   };
@@ -199,6 +225,7 @@ class QuickActionButtons extends LitElement {
                       html` <mwc-button
                         class="status-button ${this.updatedStatus}"
                         key=${key}
+                        @click=${() => this.updatePersonContext(key)}
                       >
                         <div class="content-wrapper">
                           <span>
@@ -315,19 +342,21 @@ class QuickActionButtons extends LitElement {
       .followup-action-container {
         --status-color: #e1e1e11f;
         border-color: var(--status-color);
+      }
 
-        .back-button {
-          border: 1px solid var(--status-color);
-          border-radius: 8px;
-          width: 100%;
-
-          .content-wrapper-back {
-            color: #e1e1e1;
-            ha-svg-icon {
-              margin-right: 8px;
-            }
-          }
-        }
+      .followup-action-container .back-button {
+        border: 1px solid var(--status-color);
+        border-radius: 8px;
+        width: 100%;
+      }
+      .followup-action-container .back-button .content-wrapper-back {
+        color: #e1e1e1;
+      }
+      .followup-action-container
+        .back-button
+        .content-wrapper-back
+        ha-svg-icon {
+        margin-right: 8px;
       }
     `;
   }

@@ -50,6 +50,8 @@ class DialogPersonDetail extends LitElement {
 
   @state() private _status!: string;
 
+  @state() private _context!: string;
+
   @state() private _isAdmin?: boolean;
 
   @state() private _localOnly?: boolean;
@@ -82,6 +84,7 @@ class DialogPersonDetail extends LitElement {
       this._userId = this._params.entry.user_id || undefined;
       this._role = this._params.entry.role || "";
       this._status = this._params.entry.status || "";
+      this._context = this._params.entry.status || "";
       this._deviceTrackers = this._params.entry.device_trackers || [];
       this._picture = this._params.entry.picture || null;
       this._user = this._userId
@@ -99,6 +102,7 @@ class DialogPersonDetail extends LitElement {
       this._deviceTrackers = [];
       this._role = "";
       this._status = "";
+      this._context = "";
       this._picture = null;
     }
     await this.updateComplete;
@@ -183,6 +187,13 @@ class DialogPersonDetail extends LitElement {
               <ha-list-item value="unaccounted">Unaccounted</ha-list-item>
               <ha-list-item value="absent">Absent</ha-list-item>
             </ha-select>
+
+            <ha-textfield
+              dialogInitialFocus
+              .value=${this._context}
+              @input=${this._contextChanged}
+              label=${this.hass!.localize("ui.panel.config.person.detail.name")}
+            ></ha-textfield>
 
             <ha-formfield
               .label=${this.hass!.localize(
@@ -335,6 +346,11 @@ class DialogPersonDetail extends LitElement {
     this._status = ev.target.value;
   }
 
+  private _contextChanged(ev) {
+    this._error = undefined;
+    this._context = ev.target.value;
+  }
+
   private _adminChanged(ev): void {
     this._isAdmin = ev.target.checked;
   }
@@ -424,6 +440,7 @@ class DialogPersonDetail extends LitElement {
           ],
           role: this._role,
           status: this._status,
+          context: this._context,
           local_only: this._localOnly,
         });
         this._params?.refreshUsers();
@@ -432,6 +449,7 @@ class DialogPersonDetail extends LitElement {
         name: this._name.trim(),
         role: this._role,
         status: this._status,
+        context: this._context,
         device_trackers: this._deviceTrackers,
         user_id: this._userId || null,
         picture: this._picture,

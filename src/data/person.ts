@@ -10,6 +10,7 @@ export interface Person extends BasePerson {
   user_id?: string;
   role?: string;
   status?: string;
+  context?: string;
   device_trackers?: string[];
 }
 
@@ -17,6 +18,7 @@ export interface PersonMutableParams {
   name: string;
   role: string;
   status: string;
+  context: string;
   user_id: string | null;
   device_trackers: string[];
   picture: string | null;
