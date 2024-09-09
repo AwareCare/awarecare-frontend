@@ -1,3 +1,4 @@
+/* eslint-disable lit/no-template-arrow */
 import {
   mdiMapMarkerAlert,
   mdiPistol,
@@ -16,9 +17,50 @@ import { HomeAssistant } from "../types";
 class ClassroomHeaderSection extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
 
-  @state() private roomName: string = "room_111";
+  @property({ attribute: "on-status-updated", type: Object })
+  public onStatusUpdated!: () => void;
 
-  @state() private storedValue: string = "";
+  @state() private entityId: string =
+    "room." + window.location.pathname.split("/")[2];
+
+  @state() private updatedCommand: string = "";
+
+  @state() private roomAttributes: object = {};
+
+  private _unsub?: () => void;
+
+  responseBtnMapping = {
+    weapon: {
+      color: "#ed5d5d",
+      label: "Weapon",
+      icon: mdiPistol,
+    },
+    fire: {
+      color: "#faa84f",
+      label: "Fire",
+      icon: mdiFire,
+    },
+    medical: {
+      color: "#6fa1d6",
+      label: "Medical",
+      icon: mdiMedicalBag,
+    },
+    weather: {
+      color: "#9689c1",
+      label: "Weather",
+      icon: mdiWeatherLightningRainy,
+    },
+    suspicious: {
+      color: "#00abac",
+      label: "Suspicious",
+      icon: mdiAccountAlert,
+    },
+    conflict: {
+      color: "#d17cb3",
+      label: "Conflict",
+      icon: mdiAlert,
+    },
+  };
 
   connectedCallback() {
     super.connectedCallback();
@@ -34,12 +76,13 @@ class ClassroomHeaderSection extends LitElement {
   }
 
   private _getStoredValue() {
-    const entityId = "input_text.command_store";
+    const entityId = "room.room_111";
     const entity = this.hass.states[entityId];
 
     if (entity) {
       try {
-        this.storedValue = JSON.parse(entity.state);
+        this.roomAttributes = entity?.attributes;
+        this.updatedCommand = this.roomAttributes.command;
       } catch (err) {
         handleError(err);
       }
@@ -47,24 +90,53 @@ class ClassroomHeaderSection extends LitElement {
   }
 
   private _subscribeToStateChanges() {
-    this._unsub = this.hass.connection.subscribeMessage(
-      (message) => {
-        const entityId = "input_text.command_store";
-        const event = message.event;
+    const subscribeEvent = {
+      id: 1,
+      type: "subscribe_events",
+      event_type: "state_changed",
+    };
 
-        if (event && event.data.entity_id === entityId) {
-          try {
-            this.storedValue = JSON.parse(event.data.new_state.state);
-          } catch (error) {
-            handleError("Failed to parse stored value:", error);
+    this.hass.connection.socket.send(JSON.stringify(subscribeEvent));
+
+    this.hass.connection.socket.addEventListener("message", (event) => {
+      const message = JSON.parse(event.data);
+
+      if (
+        message.type === "event" &&
+        message.event.c &&
+        this.roomAttributes !== this.roomAttributes.command
+      ) {
+        const updatedEntity = message.event.c["room.room_111"];
+
+        if (updatedEntity && updatedEntity["+"]) {
+          const newCommand = updatedEntity["+"].a.command;
+
+          this.updatedCommand = newCommand;
+
+          if (this.onStatusUpdated) {
+            this.onStatusUpdated();
           }
         }
-      },
-      {
-        type: "subscribe_events",
-        event_type: "state_changed",
       }
-    );
+    });
+  }
+
+  private async updateClassRoomStatus(response: string) {
+    this._error = "";
+
+    const stateObj = this.hass.states[this.entityId];
+    const state_attributes = stateObj.attributes;
+
+    state_attributes.response = response;
+    try {
+      await this.hass.callApi("POST", "states/" + this.entityId, {
+        state: stateObj.state,
+        attributes: state_attributes,
+      });
+      this.onStatusUpdated();
+    } catch (e: any) {
+      this._error = e.body?.message || "Unknown error";
+    }
   }
 
   protected render() {
@@ -90,127 +162,33 @@ class ClassroomHeaderSection extends LitElement {
                   .height=${32}
                 ></ha-svg-icon></span
               >INITIATE EMERGENCY :
-              <span>${(this.storedValue?.value || "").toUpperCase()}</span>
+              <span>${this.updatedCommand.toUpperCase()}</span>
             </h3>
           </div>
 
           <div class="row">
-            <mwc-button
-              class="status-button weapon"
-              id="room_status_${this.roomName}_state_weapon"
-              @click=${this._sendRoomStatus}
-              ><div class="content-wrapper">
-                <span
-                  ><ha-svg-icon
-                    .path=${mdiPistol}
-                    .width=${28}
-                    .height=${28}
-                  ></ha-svg-icon
-                ></span>
-                <span>Weapon</span>
-              </div>
-            </mwc-button>
-
-            <mwc-button
-              class="status-button fire"
-              id="room_status_${this.roomName}_state_fire"
-              @click=${this._sendRoomStatus}
-              ><div class="content-wrapper">
-                <span
-                  ><ha-svg-icon
-                    .path=${mdiFire}
-                    .width=${28}
-                    .height=${28}
-                  ></ha-svg-icon
-                ></span>
-                <span>Fire</span>
-              </div>
-            </mwc-button>
-
-            <mwc-button
-              class="status-button medical"
-              id="room_status_${this.roomName}_state_medical"
-              @click=${this._sendRoomStatus}
-              ><div class="content-wrapper">
-                <span
-                  ><ha-svg-icon
-                    .path=${mdiMedicalBag}
-                    .width=${28}
-                    .height=${28}
-                  ></ha-svg-icon
-                ></span>
-                <span>Medical</span>
-              </div>
-            </mwc-button>
-
-            <mwc-button
-              class="status-button weather"
-              id="room_status_${this.roomName}_state_weather"
-              @click=${this._sendRoomStatus}
-              ><div class="content-wrapper">
-                <span
-                  ><ha-svg-icon
-                    .path=${mdiWeatherLightningRainy}
-                    .width=${28}
-                    .height=${28}
-                  ></ha-svg-icon
-                ></span>
-                <span>Weather</span>
-              </div>
-            </mwc-button>
-
-            <mwc-button
-              class="status-button suspicious"
-              id="room_status_${this.roomName}_state_suspicious"
-              @click=${this._sendRoomStatus}
-              ><div class="content-wrapper">
-                <span
-                  ><ha-svg-icon
-                    .path=${mdiAccountAlert}
-                    .width=${28}
-                    .height=${28}
-                  ></ha-svg-icon
-                ></span>
-                <span>Suspicious</span>
-              </div>
-            </mwc-button>
-
-            <mwc-button
-              class="status-button conflict"
-              id="room_status_${this.roomName}_state_conflict"
-              @click=${this._sendRoomStatus}
-              ><div class="content-wrapper">
-                <span
-                  ><ha-svg-icon
-                    .path=${mdiAlert}
-                    .width=${28}
-                    .height=${28}
-                  ></ha-svg-icon
-                ></span>
-                <span>Conflict</span>
-              </div>
-            </mwc-button>
+            ${Object.entries(this.responseBtnMapping).map(
+              ([key, item]) =>
+                html`<mwc-button
+                  class="status-button ${key}"
+                  key=${key}
+                  @click=${() => this.updateClassRoomStatus(key)}
+                  ><div class="content-wrapper">
+                    <span
+                      ><ha-svg-icon
+                        .path=${item.icon}
+                        .width=${28}
+                        .height=${28}
+                      ></ha-svg-icon
+                    ></span>
+                    <span>${item.label}</span>
+                  </div>
+                </mwc-button>`
+            )}
           </div>
         </div>
       </div>
     `;
-  }
-
-  private _sendRoomStatus(ev: MouseEvent) {
-    const button = ev.currentTarget as HTMLButtonElement;
-    const status = button.id.split("_").pop();
-
-    this.storedValue.roomStatus = status;
-
-    const data = {
-      ...this.storedValue,
-    };
-
-    this.hass.callService = this.hass.callService.bind(this.hass);
-    this.hass.callService("input_text", "set_value", {
-      entity_id: "input_text.command_store",
-      value: JSON.stringify(data),
-    });
   }
 
   static get styles(): CSSResultGroup {
