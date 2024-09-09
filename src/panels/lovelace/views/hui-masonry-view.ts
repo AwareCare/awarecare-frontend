@@ -81,7 +81,9 @@ export class MasonryView extends LitElement implements LovelaceViewElement {
 
   protected render(): TemplateResult {
     return html`
-      ${this._isMapRoute() ? html`<map-view></map-view>` : ""}
+      ${this._isMapRoute()
+        ? html`<map-view .hass=${this.hass}></map-view>`
+        : ""}
       ${this.badges.length > 0
         ? html`<div class="badges">${this.badges}</div>`
         : ""}

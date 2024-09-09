@@ -96,7 +96,9 @@ export class SectionsView extends LitElement implements LovelaceViewElement {
         draggable-selector=".section"
         .rollback=${false}
       >
-        <ha-classroom-header-section></ha-classroom-header-section>
+        <ha-classroom-header-section
+          .hass=${this.hass}
+        ></ha-classroom-header-section>
 
         <div
           class="container"
