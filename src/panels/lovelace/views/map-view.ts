@@ -48,35 +48,27 @@ class MapView extends LitElement {
 
   @property({ type: String, attribute: "dialog-room" }) dialogRoom = "";
 
-  @state() private storedValue: string = "";
+  @state() private roomId: string = "";
+
+  @state() private roomAttributes: object = {};
 
   updated(changedProperties: Map<string, unknown>) {
     super.updated(changedProperties);
 
-    // Parse the storedValue string to a JSON object
-    const parsedValue = this.storedValue;
+    const parsedValue = this.roomAttributes;
 
-    // Check if the storedValue has the required properties
-    if (parsedValue && parsedValue.type && parsedValue.roomStatus) {
-      // Find the SVG element by ID that matches the type value
+    if (parsedValue && parsedValue.response) {
       const svgElement = this.shadowRoot?.querySelector(
-        `#${parsedValue.type}`
+        `#${parsedValue.friendly_name}`
       ) as SVGElement;
 
       const svgElementStatus = this.shadowRoot?.querySelector(
-        `#status_${parsedValue.type}`
+        `#status_${parsedValue.friendly_name}`
       ) as SVGElement;
 
-      // const svgElementStatusIcon = this.shadowRoot?.querySelector(
-      //   `#bg_status_icon_${parsedValue.roomStatus}`
-      // ) as SVGElement;
-
       if (svgElement) {
-        // Set the fill attribute based on the roomStatus
         const fillColor =
-          stateToColorMap[
-            parsedValue.roomStatus as keyof typeof stateToColorMap
-          ];
+          stateToColorMap[parsedValue.response as keyof typeof stateToColorMap];
 
         const bgStatusGroup = svgElementStatus.querySelector(
           "#bg_status"
@@ -92,8 +84,16 @@ class MapView extends LitElement {
             ".bg_status_color"
           ) as SVGPathElement;
 
+          const allPathElementIcons = bgStatusGroup.querySelectorAll(
+            "[id^='bg_status_icon_']"
+          ) as NodeListOf<SVGPathElement>;
+
+          allPathElementIcons.forEach((icon) => {
+            icon.setAttribute("style", "opacity: 0;");
+          });
+
           const pathElementIcon = bgStatusGroup.querySelector(
-            `#bg_status_icon_${parsedValue.roomStatus}`
+            `#bg_status_icon_${parsedValue.response}`
           ) as SVGPathElement;
 
           if (pathElement) {
@@ -106,7 +106,7 @@ class MapView extends LitElement {
           }
         }
 
-        if (commandGroup && parsedValue.sentCommand) {
+        if (commandGroup && parsedValue.command) {
           commandGroup.setAttribute("style", "opacity: 1;");
         }
 
@@ -118,18 +118,58 @@ class MapView extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this._getStoredValue();
+    this._subscribeToStateChanges();
   }
 
   private _getStoredValue() {
-    const entityId = "input_text.command_store";
-    const entity = this.hass.states[entityId];
-    const parsedEntity = JSON.parse(entity.state);
+    const roomEntityId = this.hass.states[`room.room_111`]; // convert to dynamic
 
-    if (entity) {
-      this.storedValue = parsedEntity;
-    } else {
-      handleError(`Entity ${entityId} not found.`);
+    if (roomEntityId) {
+      try {
+        this.roomAttributes = roomEntityId?.attributes;
+      } catch (err) {
+        handleError(err);
+      }
     }
+  }
+
+  private _subscribeToStateChanges() {
+    const subscribeEvent = {
+      id: 1,
+      type: "subscribe_events",
+      event_type: "state_changed",
+    };
+
+    this.hass.connection.socket.send(JSON.stringify(subscribeEvent));
+
+    this.hass.connection.socket.addEventListener("message", (event) => {
+      const message = JSON.parse(event.data);
+
+      if (
+        message.type === "event" &&
+        message.event.c &&
+        this.roomAttributes !== this.roomAttributes.command
+      ) {
+        const updatedEntity = message.event.c["room.room_111"];
+
+        if (updatedEntity && updatedEntity["+"]) {
+          const newCommand = updatedEntity["+"].a.response;
+
+          this.updatedCommand = newCommand;
+
+          if (this.onStatusUpdated) {
+            this.onStatusUpdated();
+          }
+
+          this.roomAttributes = {
+            ...this.roomAttributes,
+            response: newCommand,
+          };
+
+          this.requestUpdate();
+        }
+      }
+    });
   }
 
   protected render() {
@@ -856,7 +896,9 @@ class MapView extends LitElement {
 
   private _openDialog(event: Event) {
     const target = event.currentTarget as HTMLElement;
-    const type = target.id === "entire-campus" ? "entire" : "selected";
+
+    this.roomId = target.id;
+    const type = this.roomId === "entire-campus" ? "entire" : "selected";
 
     this.dialogTitle = "Send Command";
     this.dialogRoom = target.id;
@@ -864,24 +906,30 @@ class MapView extends LitElement {
     this.dialogOpen = true;
   }
 
-  private _sendCommand(event: Event) {
+  private async _sendCommand(event: Event) {
     const target = event.currentTarget as HTMLElement;
     const cmdValue = target.getAttribute("value") || "";
-    const data = {
-      ...this.storedValue,
-      type: this.dialogRoom,
-      value: cmdValue,
-      sentCommand: true,
-    };
+
+    this._error = "";
 
     if (!this.hass) {
       return;
     }
 
-    this.hass.callService("input_text", "set_value", {
-      entity_id: "input_text.command_store",
-      value: JSON.stringify(data),
-    });
+    const roomEntityId = `room.${this.roomId}`;
+    const roomState = this.hass.states[`room.${this.roomId}`];
+    const roomStateAttributes = roomState.attributes;
+
+    roomStateAttributes.command = cmdValue;
+
+    try {
+      await this.hass.callApi("POST", "states/" + roomEntityId, {
+        state: roomState.state,
+        attributes: roomStateAttributes,
+      });
+    } catch (e: any) {
+      this.error = e.body?.message || "Unknown error";
+    }
   }
 
   private _closeDialog() {
