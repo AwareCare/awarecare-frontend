@@ -76,8 +76,7 @@ class ClassroomHeaderSection extends LitElement {
   }
 
   private _getStoredValue() {
-    const entityId = "room.room_111";
-    const entity = this.hass.states[entityId];
+    const entity = this.hass.states[this.entityId];
 
     if (entity) {
       try {
