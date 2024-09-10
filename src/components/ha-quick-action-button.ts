@@ -36,8 +36,6 @@ class QuickActionButtons extends LitElement {
 
   @state() private updatedStatus = "";
 
-  @state() private updatedContext = "";
-
   followActions = ["medical", "disciplinary"];
 
   buttonMapping = {
@@ -118,6 +116,7 @@ class QuickActionButtons extends LitElement {
     const state_attributes = stateObj.attributes;
 
     state_attributes.status = status;
+    state_attributes.context = "";
     try {
       await this.hass.callApi("POST", "states/" + this.entityId, {
         state: stateObj.state,
@@ -136,7 +135,6 @@ class QuickActionButtons extends LitElement {
 
   private async updatePersonContext(context: string) {
     this._error = "";
-    this.updatedContext = context;
 
     const stateObj = this.hass.states[this.entityId];
     const state_attributes = stateObj.attributes;
