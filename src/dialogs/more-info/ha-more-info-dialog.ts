@@ -289,6 +289,7 @@ export class MoreInfoDialog extends LitElement {
         .heading=${title}
         hideActions
         flexContent
+        @status-updated=${this.closeDialog}
       >
         <ha-dialog-header slot="heading">
           ${showCloseIcon

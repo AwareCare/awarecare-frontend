@@ -160,6 +160,14 @@ class QuickActionButtons extends LitElement {
     this.isFollowupAction = false;
   };
 
+  _handleButtonClick() {
+    const event = new CustomEvent("status-updated", {
+      bubbles: true,
+      composed: true,
+    });
+    this.dispatchEvent(event);
+  }
+
   protected render() {
     return html`
       <hr style="border-color: #000000" />

@@ -105,7 +105,7 @@ class ClassroomHeaderSection extends LitElement {
         message.event.c &&
         this.roomAttributes !== this.roomAttributes.command
       ) {
-        const updatedEntity = message.event.c["room.room_111"];
+        const updatedEntity = message.event.c[this.entityId];
 
         if (updatedEntity && updatedEntity["+"]) {
           const newCommand = updatedEntity["+"].a.command;
@@ -121,9 +121,8 @@ class ClassroomHeaderSection extends LitElement {
   }
 
   private async updateClassRoomStatus(response: string) {
-    this._error = "";
-
     const stateObj = this.hass.states[this.entityId];
+
     const state_attributes = stateObj.attributes;
 
     state_attributes.response = response;
@@ -134,7 +133,7 @@ class ClassroomHeaderSection extends LitElement {
       });
       this.onStatusUpdated();
     } catch (e: any) {
-      this._error = e.body?.message || "Unknown error";
+      throw e.body?.message || "Unknown error";
     }
   }
 
@@ -145,7 +144,7 @@ class ClassroomHeaderSection extends LitElement {
           <div class="avatar-section">
             <div class="avatar"></div>
             <div class="text-description">
-              <h4 class="section-info">CLASSROOM #203</h4>
+              <h4 class="section-info">CLASSROOM #111</h4>
               <p class="advisor-name">Myra T. Aguirre</p>
               <p class="department">Science Department</p>
             </div>
@@ -161,7 +160,7 @@ class ClassroomHeaderSection extends LitElement {
                   .height=${32}
                 ></ha-svg-icon></span
               >INITIATE EMERGENCY :
-              <span>${this.updatedCommand.toUpperCase()}</span>
+              <span>${(this.updatedCommand || "").toUpperCase()}</span>
             </h3>
           </div>
 
