@@ -1,4 +1,4 @@
-import { property } from "lit/decorators";
+import { property, state } from "lit/decorators";
 
 import { css, CSSResultGroup, html, LitElement } from "lit";
 
@@ -17,11 +17,41 @@ class DialogCommand extends LitElement {
   @property({ type: String, attribute: "dialog-room-name" }) dialogRoomName =
     "";
 
-  private _closeDialog() {
-    this.dialogOpen = false;
-    this.dispatchEvent(
-      new CustomEvent("dialog-closed", { bubbles: true, composed: true })
-    );
+  @property({ type: Array, attribute: "selected-rooms" })
+  selectedRooms: any[] = [];
+
+  @state() private commandHeaderMessage: string = "";
+
+  @state() private isMultipleRooms: string = "";
+
+  firstUpdated() {}
+
+  updated(changedProperties) {
+    if (
+      changedProperties.has("selectedRooms") ||
+      changedProperties.has("dialogRoomName")
+    ) {
+      this.isMultipleRooms = this.dialogRoomName === "room_selected";
+
+      const roomName = this.selectedRooms
+        .join(this.isMultipleRooms ? ", " : "")
+        .toUpperCase()
+        .replace(/_/g, " ");
+
+      if (this.isMultipleRooms) {
+        this.commandHeaderMessage = html`<p>
+            Send instant command to the following rooms
+          </p>
+          <p class="roomName">${roomName}</p>`;
+      } else {
+        this.commandHeaderMessage = html`
+          <p>
+            Send instant command to
+            <span class="roomName">${this.dialogRoomName}</span>
+          </p>
+        `;
+      }
+    }
   }
 
   private async _sendCommand(event: Event) {
@@ -32,20 +62,61 @@ class DialogCommand extends LitElement {
       return;
     }
 
-    const roomEntityId = `room.${this.dialogRoomName.replace(" ", "_")}`;
-    const roomState = this.hass.states[roomEntityId];
-    const roomStateAttributes = roomState.attributes;
+    const promises: Promise<any>[] = [];
 
-    roomStateAttributes.command = cmdValue;
+    if (!this.isMultipleRooms) {
+      const roomEntityId = `room.${this.dialogRoomName.replace(" ", "_")}`;
+      const roomState = this.hass.states[roomEntityId];
+      const roomStateAttributes = {
+        ...roomState.attributes,
+        command: cmdValue,
+      };
+
+      promises.push(
+        this.hass.callApi("POST", `states/${roomEntityId}`, {
+          state: roomState.state,
+          attributes: roomStateAttributes,
+        })
+      );
+    } else {
+      if (!this.selectedRooms || this.selectedRooms.length === 0) {
+        return;
+      }
+
+      for (const room of this.selectedRooms) {
+        const roomEntityId = `room.${room.replace(" ", "_")}`;
+        const roomState = this.hass.states[roomEntityId];
+
+        if (!roomState) {
+          continue;
+        }
+
+        const roomStateAttributes = {
+          ...roomState.attributes,
+          command: cmdValue,
+        };
+
+        promises.push(
+          this.hass.callApi("POST", `states/${roomEntityId}`, {
+            state: roomState.state,
+            attributes: roomStateAttributes,
+          })
+        );
+      }
+    }
 
     try {
-      await this.hass.callApi("POST", "states/" + roomEntityId, {
-        state: roomState.state,
-        attributes: roomStateAttributes,
-      });
+      await Promise.all(promises);
     } catch (e: any) {
       throw e.body?.message || "Unknown error";
     }
+  }
+
+  private _closeDialog() {
+    this.dialogOpen = false;
+    this.dispatchEvent(
+      new CustomEvent("dialog-closed", { bubbles: true, composed: true })
+    );
   }
 
   protected render() {
@@ -55,12 +126,7 @@ class DialogCommand extends LitElement {
         heading="Send Command"
         @closed=${this._closeDialog}
       >
-        <div>
-          Send instant command to
-          <span style="font-weight: bold;"
-            >${this.dialogRoomName.toUpperCase()}</span
-          >
-        </div>
+        <div>${this.commandHeaderMessage}</div>
 
         <div class="row">
           <mwc-button
@@ -162,6 +228,11 @@ class DialogCommand extends LitElement {
         .command-button:hover {
           background-color: #f0f0f08c;
         }
+      }
+
+      .roomName {
+        font-weight: bold;
+        text-transform: uppercase;
       }
     `;
   }

@@ -79,6 +79,8 @@ class MapView extends LitElement {
 
   @state() private clickedRoom: string = "";
 
+  @state() private hasNotOkayRoom: boolean = false;
+
   updated(changedProperties: Map<string, unknown>) {
     super.updated(changedProperties);
 
@@ -194,6 +196,14 @@ class MapView extends LitElement {
         this.roomAttributes[roomId].persons = sortedPersonStates;
       }
     });
+
+    this.checkRoomsForNotOkayStatus();
+  }
+
+  private checkRoomsForNotOkayStatus() {
+    this.hasNotOkayRoom = Object.values(this.roomAttributes).some(
+      (room) => room.response !== ""
+    );
   }
 
   private handleError(error: any) {
@@ -332,14 +342,21 @@ class MapView extends LitElement {
       </div>
 
       <div class="container">
-        <div class="svg-map">
+        <div
+          class="svg-map ${this.hasNotOkayRoom}"
+          style=${this.hasNotOkayRoom ? "width: 75%" : ""}
+        >
           <div class="map-name">
             <h2>Campus Map</h2>
           </div>
           <div id="svg-container"></div>
         </div>
 
-        <div class="right-menu" id="right-menu">
+        <div
+          class="right-menu"
+          id="right-menu"
+          style=${this.hasNotOkayRoom ? "display: flex" : ""}
+        >
           <map-right-navigation
             .hass=${this.hass}
             .roomAttributes=${this.roomAttributes}
@@ -462,7 +479,7 @@ class MapView extends LitElement {
   }
 
   protected firstUpdated(_changedProperties: PropertyValues) {
-    this.addAccordionListeners();
+    // this.addAccordionListeners();
     this._addSvgMap();
   }
 
@@ -2562,6 +2579,7 @@ class MapView extends LitElement {
 
   private _addClickHandlers() {
     const sections = [
+      "room_105",
       "room_111",
       "room_113",
       "room_114",

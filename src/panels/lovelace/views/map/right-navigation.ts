@@ -1,3 +1,6 @@
+import isEmpty from "lodash/isEmpty";
+import has from "lodash/has";
+
 import { html, LitElement, css, CSSResultGroup } from "lit";
 import { property, state } from "lit/decorators";
 
@@ -18,6 +21,7 @@ import "../../../../components/ha-svg-icon";
 
 import { HomeAssistant } from "../../../../types";
 import { sortRoomsByResponse } from "../../../../util/sorting-utils";
+import { getPersonCountByStatus } from "../../../../util/person-status-order-count-utils";
 import { stateIconMap } from "../../../../common/entity/state-icon-map";
 
 import "./dialog-command";
@@ -38,6 +42,8 @@ class MapRightNavigation extends LitElement {
 
   @state() private dialogRoomName: string = "";
 
+  @state() private selectedRooms: string[] = [];
+
   firstUpdated() {
     this.addAccordionListeners();
   }
@@ -46,14 +52,33 @@ class MapRightNavigation extends LitElement {
     super.updated(changedProperties);
 
     if (changedProperties.has("clickedRoom") && this.clickedRoom) {
-      // Find the accordion item associated with clickedRoom
       const accordionItem = this.shadowRoot!.querySelector(
         `.accordion-item.${this.clickedRoom}`
       ) as HTMLElement;
 
+      const isRoomListed = has(this.roomsEntities, `room.` + this.clickedRoom);
+
       if (accordionItem) {
-        this.openAccordionItem(accordionItem);
+        const hasHideClass = accordionItem.classList.contains("hide");
+
+        if (isRoomListed && !hasHideClass) {
+          accordionItem.classList.add("hide");
+        } else {
+          accordionItem.classList.remove("hide");
+          this.openAccordionItem(accordionItem);
+        }
+
+        this.updateSelectedRooms(this.clickedRoom);
       }
+    }
+  }
+
+  private updateSelectedRooms(room: string) {
+    const index = this.selectedRooms.indexOf(room);
+    if (index === -1) {
+      this.selectedRooms = [...this.selectedRooms, room];
+    } else {
+      this.selectedRooms = this.selectedRooms.filter((r) => r !== room);
     }
   }
 
@@ -83,6 +108,12 @@ class MapRightNavigation extends LitElement {
       if (entity) {
         try {
           roomsUnsorted[entityId] = entity.attributes;
+          if (!isEmpty(entity.attributes.response)) {
+            const roomId = entityId.replace("room.", "");
+            if (!this.selectedRooms.includes(roomId)) {
+              this.selectedRooms.push(roomId);
+            }
+          }
         } catch (err) {
           this.handleError(err);
         }
@@ -158,171 +189,151 @@ class MapRightNavigation extends LitElement {
   protected render() {
     return html`
       <div class="accordion">
-        ${Object.entries(this.roomsEntities).map(
-          ([entityId, attributes]) =>
-            html` <div
-              class="accordion-item ${attributes.response} ${attributes.friendly_name}"
-              key=${entityId}
-            >
-              <div class="accordion-header">
-                <div class="section-name">
-                  ${(attributes.friendly_name || "")
-                    .replace("_", " ")
-                    .toUpperCase()}
-                  ${attributes.response &&
-                  html`
-                    <span class="section-status"
-                      ><ha-svg-icon
-                        .path=${this.mapResponseToIcon(attributes.response)}
-                        .width=${16}
-                        .height=${16}
-                      ></ha-svg-icon>
-                      <span class="badge counter"> 1 </span>
-                      ${attributes.command &&
-                      html`
-                        <span class="badge command">
-                          <ha-svg-icon
-                            .path=${mdiFormatQuoteOpen}
-                            .width=${12}
-                            .height=${12}
-                          >
-                          </ha-svg-icon
-                        ></span>
-                      `}
-                    </span>
-                  `}
-                </div>
+        ${Object.entries(this.roomsEntities).map(([entityId, attributes]) => {
+          const personBadge = getPersonCountByStatus(attributes.persons);
+          const response = attributes.response;
+          const hide = isEmpty(response) ? "hide" : "";
 
-                <span class="accordion-icon"
-                  ><ha-svg-icon
-                    .path=${mdiChevronRight}
-                    .width=${14}
-                    .height=${14}
-                  ></ha-svg-icon
-                ></span>
-              </div>
-
-              <div class="accordion-content">
-                <div class="accordion nested">
-                  <div class="accordion-item">
-                    <div class="accordion-header">
-                      <div class="section-name">ROOM INFO</div>
-                      <span class="accordion-icon"
-                        ><ha-svg-icon
-                          .path=${mdiChevronRight}
-                          .width=${14}
-                          .height=${14}
-                        ></ha-svg-icon
-                      ></span>
-                    </div>
-                    <div class="accordion-content">
-                      <div class="student-list">
-                        <div class="student-item default">
-                          <div class="student-name">
-                            Myra T. Aguirre
-                            <span class="type"> | ADVISER </span>
-                          </div>
-                        </div>
-                        <div>
-                          <p>Science Department</p>
-                          <p>Class Schedule: 6am - 8am</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="accordion-item">
-                    <div class="accordion-header">
-                      <div class="section-name">ROLL CALL</div>
-                      <span class="accordion-icon">
-                        <span class="students-count"
-                          >${attributes.persons.length} Students</span
-                        >
+          return html` <div
+            class="accordion-item ${response} ${attributes.friendly_name} ${hide}"
+            key=${entityId}
+          >
+            <div class="accordion-header">
+              <div class="section-name">
+                ${(attributes.friendly_name || "")
+                  .replace("_", " ")
+                  .toUpperCase()}
+                ${attributes.response &&
+                html`
+                  <span class="section-status"
+                    ><ha-svg-icon
+                      .path=${this.mapResponseToIcon(attributes.response)}
+                      .width=${16}
+                      .height=${16}
+                    ></ha-svg-icon>
+                    ${personBadge && personBadge.type !== "ok"
+                      ? html` <span class="badge counter ${personBadge.type}">
+                          ${personBadge?.count}
+                        </span>`
+                      : null}
+                    ${attributes.command &&
+                    html`
+                      <span class="badge command">
                         <ha-svg-icon
-                          .path=${mdiChevronRight}
-                          .width=${14}
-                          .height=${14}
-                        ></ha-svg-icon
+                          .path=${mdiFormatQuoteOpen}
+                          .width=${12}
+                          .height=${12}
+                        >
+                        </ha-svg-icon
                       ></span>
-                    </div>
-                    <div class="accordion-content">
-                      <div class="student-list">
-                        ${Object.entries(attributes.persons).map(
-                          ([key, datum]: [string, any], index) =>
-                            html`<div
-                              class="student-item ${datum.attributes.status !==
-                              "wounded"
-                                ? "default"
-                                : "wounded"}"
-                              key=${index + key}
-                            >
-                              <div class="student-icon">
-                                <ha-svg-icon
-                                  .path=${stateIconMap(datum.attributes.status)}
-                                  .width=${18}
-                                  .height=${18}
-                                ></ha-svg-icon>
-                              </div>
-                              <div class="student-name">
-                                ${datum.attributes.friendly_name}
-                              </div>
-                            </div>`
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  ${attributes.response === "weapon"
-                    ? html`
-                        <div class="accordion-item threat">
-                          <div class="accordion-header">
-                            <div class="section-name">THREAT DETAILS</div>
-                            <span class="accordion-icon"
-                              ><ha-svg-icon
-                                .path=${mdiChevronRight}
-                                .width=${14}
-                                .height=${14}
-                              ></ha-svg-icon
-                            ></span>
-                          </div>
-                          <div class="accordion-content">
-                            <div class="threat-info-item">
-                              <span class="time">13:24</span>
-                              <span class="message"
-                                >Young male tall black hoodie</span
-                              >
-                            </div>
-                            <div class="threat-info-item">
-                              <span class="time">13:22</span>
-                              <span class="message">Red backpack</span>
-                            </div>
-                          </div>
-                        </div>
-                      `
-                    : null}
+                    `}
+                  </span>
+                `}
+              </div>
 
-                  <div
-                    class="section-send-command"
-                    id=${(attributes.friendly_name || "").replace("_", " ")}
-                    @click=${this._openDialog}
-                  >
-                    <mwc-button class="action-button">
-                      <div class="action-button-icon">
-                        <p class="button-text">
-                          <span class="icon">
-                            <ha-svg-icon
-                              .path=${mdiSend}
-                              .width=${18}
-                              .height=${18}
-                            ></ha-svg-icon>
-                          </span>
-                          Send Command
-                        </p>
+              <span class="accordion-icon"
+                ><ha-svg-icon
+                  .path=${mdiChevronRight}
+                  .width=${14}
+                  .height=${14}
+                ></ha-svg-icon
+              ></span>
+            </div>
+
+            <div class="accordion-content">
+              <div class="accordion nested">
+                <div class="accordion-item">
+                  <div class="accordion-header">
+                    <div class="section-name">ROOM INFO</div>
+                    <span class="accordion-icon"
+                      ><ha-svg-icon
+                        .path=${mdiChevronRight}
+                        .width=${14}
+                        .height=${14}
+                      ></ha-svg-icon
+                    ></span>
+                  </div>
+                  <div class="accordion-content">
+                    <div class="student-list">
+                      <div class="student-item default">
+                        <div class="student-name">
+                          Myra T. Aguirre
+                          <span class="type"> | ADVISER </span>
+                        </div>
                       </div>
-                    </mwc-button>
+                      <div>
+                        <p>Science Department</p>
+                        <p>Class Schedule: 6am - 8am</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
+                <div class="accordion-item">
+                  <div class="accordion-header">
+                    <div class="section-name">ROLL CALL</div>
+                    <span class="accordion-icon">
+                      <span class="students-count"
+                        >${attributes.persons.length} Students</span
+                      >
+                      <ha-svg-icon
+                        .path=${mdiChevronRight}
+                        .width=${14}
+                        .height=${14}
+                      ></ha-svg-icon
+                    ></span>
+                  </div>
+                  <div class="accordion-content">
+                    <div class="student-list">
+                      ${Object.entries(attributes.persons).map(
+                        ([key, datum]: [string, any], index) =>
+                          html`<div
+                            class="student-item ${datum.attributes.status !==
+                            "wounded"
+                              ? "default"
+                              : "wounded"}"
+                            key=${index + key}
+                          >
+                            <div
+                              class="student-icon ${datum.attributes.status}"
+                            >
+                              <ha-svg-icon
+                                .path=${stateIconMap(datum.attributes.status)}
+                                .width=${18}
+                                .height=${18}
+                              ></ha-svg-icon>
+                            </div>
+                            <div class="student-name">
+                              ${datum.attributes.friendly_name}
+                            </div>
+                          </div>`
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="section-send-command"
+                  id=${(attributes.friendly_name || "").replace("_", " ")}
+                  @click=${this._openDialog}
+                >
+                  <mwc-button class="action-button">
+                    <div class="action-button-icon">
+                      <p class="button-text">
+                        <span class="icon">
+                          <ha-svg-icon
+                            .path=${mdiSend}
+                            .width=${18}
+                            .height=${18}
+                          ></ha-svg-icon>
+                        </span>
+                        Send Command
+                      </p>
+                    </div>
+                  </mwc-button>
+                </div>
               </div>
-            </div>`
-        )}
+            </div>
+          </div>`;
+        })}
 
         <div
           class="bottom-action"
@@ -331,7 +342,9 @@ class MapRightNavigation extends LitElement {
         >
           <mwc-button class="action-button">
             <div class="action-button-icon">
-              <p>SEND <span>TO ALL SELECTED</span></p>
+              <p>
+                SEND <span>TO ALL SELECTED (${this.selectedRooms.length})</span>
+              </p>
             </div>
           </mwc-button>
         </div>
@@ -341,6 +354,7 @@ class MapRightNavigation extends LitElement {
         .hass=${this.hass}
         .dialogOpen=${this.dialogOpen}
         .dialogRoomName=${this.dialogRoomName}
+        .selectedRooms=${this.selectedRooms}
         @dialog-closed=${this._handleDialogClosed}
       ></dialog-command>
     `;
@@ -412,6 +426,9 @@ class MapRightNavigation extends LitElement {
         &.conflict {
           --status-color: #d17cb3;
         }
+        &.ok {
+          --status-color: #1dd1a1;
+        }
         .default {
           --status-color: #e1e1e1;
         }
@@ -462,8 +479,24 @@ class MapRightNavigation extends LitElement {
 
             .counter {
               left: -8px;
-              background: var(--status-color);
               color: white;
+
+              &.wounded {
+                background: #ea4849;
+              }
+              &.medical {
+                background: #54a0ff;
+              }
+              &.disciplinary {
+                background: #d17cb3;
+              }
+              &.unaccounted {
+                background: #00abac;
+              }
+              &.absent {
+                background: #faa84f;
+              }
+
             }
 
             .command {
@@ -494,9 +527,6 @@ class MapRightNavigation extends LitElement {
       .accordion-content {
         max-height: 0;
         overflow: hidden;
-        /* transition:
-          max-height 0.3s ease,
-          padding 0.3s ease; */
         padding: 0 10px;
         background-color: #212121;
         border-top: 1px solid #415862;
@@ -533,6 +563,10 @@ class MapRightNavigation extends LitElement {
           transition: background-color 0.3s ease;
           border-bottom: 1px solid #606060;
           color: var(--status-color);
+
+          .student-icon {
+            color: var(--status-color);
+          }
         }
         .student-item:hover {
           background-color: #2b2b2b;
@@ -616,6 +650,10 @@ class MapRightNavigation extends LitElement {
                 font-size: 12px;
               }
           }
+        }
+
+        .hide {
+          display: none;
         }
     }`;
   }

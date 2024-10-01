@@ -3,7 +3,7 @@ import {
   mdiMedicalBag,
   mdiSchool,
   mdiAccountAlert,
-  mdiAccountOff,
+  mdiAccountCancel,
   mdiCheckCircle,
 } from "@mdi/js";
 
@@ -13,7 +13,7 @@ export const stateIconMap = (status: string) => {
     medical: mdiMedicalBag,
     disciplinary: mdiSchool,
     unaccounted: mdiAccountAlert,
-    absent: mdiAccountOff,
+    absent: mdiAccountCancel,
     ok: mdiCheckCircle,
   };
 
