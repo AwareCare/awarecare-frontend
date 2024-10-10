@@ -218,7 +218,7 @@ class HuiEntitiesCard extends LitElement implements LovelaceCard {
                     `}
               </h1>
             `}
-        <div id="states" class="card-content">
+        <div id="states custom-state" class="card-content">
           ${this._configEntities!.map((entityConf) =>
             this.renderEntity(entityConf)
           )}

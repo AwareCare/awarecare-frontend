@@ -1,6 +1,5 @@
 /* eslint-disable lit/no-template-arrow */
 import {
-  mdiMapMarkerAlert,
   mdiPistol,
   mdiFire,
   mdiMedicalBag,
@@ -12,6 +11,7 @@ import {
 import { CSSResultGroup, LitElement, css, html } from "lit";
 import { property, state } from "lit/decorators";
 import "./ha-svg-icon";
+import isEmpty from "lodash/isEmpty";
 import { HomeAssistant } from "../types";
 
 class ClassroomHeaderSection extends LitElement {
@@ -25,7 +25,7 @@ class ClassroomHeaderSection extends LitElement {
 
   @state() private updatedCommand: string = "";
 
-  @state() private roomAttributes: object = {};
+  @state() private roomAttributes: { response?: string } = {};
 
   private _unsub?: () => void;
 
@@ -77,13 +77,12 @@ class ClassroomHeaderSection extends LitElement {
 
   private _getStoredValue() {
     const entity = this.hass.states[this.entityId];
-
     if (entity) {
       try {
-        this.roomAttributes = entity?.attributes;
-        this.updatedCommand = this.roomAttributes.command;
+        this.roomAttributes = entity?.attributes as { response?: string };
+        this.updatedCommand = entity.state || "";
       } catch (err) {
-        handleError(err);
+        this.handleError(err);
       }
     }
   }
@@ -95,47 +94,51 @@ class ClassroomHeaderSection extends LitElement {
       event_type: "state_changed",
     };
 
-    this.hass.connection.socket.send(JSON.stringify(subscribeEvent));
+    if (this.hass.connection.socket) {
+      this.hass.connection.socket.send(JSON.stringify(subscribeEvent));
 
-    this.hass.connection.socket.addEventListener("message", (event) => {
-      const message = JSON.parse(event.data);
+      this.hass.connection.socket.addEventListener("message", (event) => {
+        const message = JSON.parse(event.data);
 
-      if (
-        message.type === "event" &&
-        message.event.c &&
-        this.roomAttributes !== this.roomAttributes.command
-      ) {
-        const updatedEntity = message.event.c["room.room_111"];
+        if (
+          message.type === "event" &&
+          message.event.c &&
+          this.roomAttributes !== this.roomAttributes.response
+        ) {
+          const updatedEntity = message.event.c[this.entityId];
 
-        if (updatedEntity && updatedEntity["+"]) {
-          const newCommand = updatedEntity["+"].a.command;
+          if (updatedEntity && updatedEntity["+"].s) {
+            const newCommand = updatedEntity["+"].s;
 
-          this.updatedCommand = newCommand;
+            this.updatedCommand = newCommand;
 
-          if (this.onStatusUpdated) {
-            this.onStatusUpdated();
+            if (this.onStatusUpdated) {
+              this.onStatusUpdated();
+            }
           }
         }
-      }
-    });
+      });
+    }
   }
 
   private async updateClassRoomStatus(response: string) {
-    this._error = "";
-
     const stateObj = this.hass.states[this.entityId];
+
     const state_attributes = stateObj.attributes;
 
-    state_attributes.response = response;
     try {
       await this.hass.callApi("POST", "states/" + this.entityId, {
-        state: stateObj.state,
+        state: response,
         attributes: state_attributes,
       });
-      this.onStatusUpdated();
+      this.onStatusUpdated = () => {};
     } catch (e: any) {
-      this._error = e.body?.message || "Unknown error";
+      throw e.body?.message || e.message || "Unknown error";
     }
+  }
+
+  private handleError(error: any) {
+    throw error;
   }
 
   protected render() {
@@ -145,7 +148,7 @@ class ClassroomHeaderSection extends LitElement {
           <div class="avatar-section">
             <div class="avatar"></div>
             <div class="text-description">
-              <h4 class="section-info">CLASSROOM #203</h4>
+              <h4 class="section-info">CLASSROOM #111</h4>
               <p class="advisor-name">Myra T. Aguirre</p>
               <p class="department">Science Department</p>
             </div>
@@ -153,26 +156,35 @@ class ClassroomHeaderSection extends LitElement {
         </div>
         <div class="card-static quick-action-buttons">
           <div class="grid">
-            <h3 class="header-section">
-              <span
-                ><ha-svg-icon
-                  .path=${mdiMapMarkerAlert}
-                  .width=${32}
-                  .height=${32}
-                ></ha-svg-icon></span
-              >INITIATE EMERGENCY :
-              <span>${this.updatedCommand.toUpperCase()}</span>
-            </h3>
+            <h2
+              class="header-section"
+              style="background-color: ${this.updatedCommand
+                ? this.responseBtnMapping[this.updatedCommand]?.color
+                : "transparent"};"
+            >
+              ${isEmpty(this.updatedCommand)
+                ? html`<p>INITIATE EMERGENCY</p>`
+                : html`<p class="hasResponse">
+                    ${this.responseBtnMapping[
+                      this.updatedCommand
+                    ]?.label.toUpperCase()}
+                  </p>`}
+            </h2>
           </div>
 
           <div class="row">
             ${Object.entries(this.responseBtnMapping).map(
               ([key, item]) =>
-                html`<mwc-button
-                  class="status-button ${key}"
+                html`<button
+                  class="status-button ${key === this.updatedCommand
+                    ? "active"
+                    : this.updatedCommand !== "0"
+                      ? "dark"
+                      : ""}"
                   key=${key}
                   @click=${() => this.updateClassRoomStatus(key)}
-                  ><div class="content-wrapper">
+                >
+                  <div class="content-wrapper ${key}">
                     <span
                       ><ha-svg-icon
                         .path=${item.icon}
@@ -182,7 +194,7 @@ class ClassroomHeaderSection extends LitElement {
                     ></span>
                     <span>${item.label}</span>
                   </div>
-                </mwc-button>`
+                </button>`
             )}
           </div>
         </div>
@@ -198,20 +210,19 @@ class ClassroomHeaderSection extends LitElement {
 
         .grid {
           border-radius: 8px 8px 0 0;
-          background-color: #e83425;
           text-align: center;
         }
 
         .row {
           display: flex;
-          justify-content: space-between; /* Adjusts spacing between buttons */
-          margin: 16px; /* Adds spacing between rows */
+          justify-content: space-between;
+          margin: 16px;
         }
 
         .card-static {
           border-radius: var(--ha-card-border-radius, 12px);
           box-shadow: var(--ha-card-box-shadow);
-          border: 1px solid var(--divider-color);
+          border: 1px solid #6b8488;
           margin: 8px;
           padding: 16px;
 
@@ -241,7 +252,7 @@ class ClassroomHeaderSection extends LitElement {
               .avatar {
                 width: 120px;
                 height: 120px;
-                background-image: url("http://localhost:8123/api/image/serve/96e278fde858dfa0082a3b166438899b/512x512");
+                background-image: url("http://localhost:8123/api/image/serve/69637b27fc0c59baf0c74141c6acf00f/512x512");
                 background-size: cover;
                 background-position: center;
                 border-radius: 50%;
@@ -258,10 +269,14 @@ class ClassroomHeaderSection extends LitElement {
           &.quick-action-buttons {
             width: 70%;
             padding: 0;
+            border-top: 12px solid #ff3d19;
 
             .header-section {
-              padding: 16px;
               margin: 0;
+              p {
+                padding: 8px;
+                margin: 0;
+              }
             }
 
             .status-button {
@@ -278,31 +293,71 @@ class ClassroomHeaderSection extends LitElement {
               transition:
                 background-color 0.3s,
                 border-color 0.3s;
+              background-color: #212222;
+              width: 140px;
+              cursor: pointer;
 
               .content-wrapper {
                 display: flex;
                 flex-direction: column;
                 align-items: center;
                 color: white;
+
+                &.weapon {
+                  color: #ed5d5d;
+                }
+                &.fire {
+                  color: #faa84f;
+                }
+                &.medical {
+                  color: #6fa1d6;
+                }
+                &.weather {
+                  color: #9689c1;
+                }
+                &.suspicious {
+                  color: #00abac;
+                }
+                &.conflict {
+                  color: #d17cb3;
+                }
               }
 
-              &.weapon {
-                background-color: #ed5d5d;
+              &:hover {
+                background-color: #2e2e2e;
+
+                &.dark {
+                  background-color: #212222;
+
+                  .content-wrapper {
+                    &.weapon {
+                      color: #ed5d5d;
+                    }
+                    &.fire {
+                      color: #faa84f;
+                    }
+                    &.medical {
+                      color: #6fa1d6;
+                    }
+                    &.weather {
+                      color: #9689c1;
+                    }
+                    &.suspicious {
+                      color: #00abac;
+                    }
+                    &.conflict {
+                      color: #d17cb3;
+                    }
+                  }
+                }
               }
-              &.fire {
-                background-color: #faa84f;
-              }
-              &.medical {
-                background-color: #6fa1d6;
-              }
-              &.weather {
-                background-color: #9689c1;
-              }
-              &.suspicious {
-                background-color: #00abac;
-              }
-              &.conflict {
-                background-color: #d17cb3;
+
+              &.dark {
+                background-color: #212222;
+
+                .content-wrapper {
+                  color: #3d4141;
+                }
               }
             }
           }
