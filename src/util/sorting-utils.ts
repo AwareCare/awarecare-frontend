@@ -9,8 +9,8 @@ export function sortRoomsByResponse(roomUnsorted: Record<string, any>) {
 
   // Sort the entries based on the response field, using the responseOrder array
   const sortedEntries = roomEntries.sort(([, a], [, b]) => {
-    const aResponseIndex = responseOrder.indexOf(a.response);
-    const bResponseIndex = responseOrder.indexOf(b.response);
+    const aResponseIndex = responseOrder.indexOf(a.state);
+    const bResponseIndex = responseOrder.indexOf(b.state);
 
     // If the response is not found in the order, place it at the end
     return (

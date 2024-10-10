@@ -29,10 +29,10 @@ import { HomeAssistant } from "../../../types";
 
 const personAssigned = {
   room_111: {
-    persons: ["ashley_blonde", "benjamin_wilson", "clay_targaryen"],
+    persons: ["eli_lazos", "grace_lewis", "james_davis"],
   },
   room_113: {
-    persons: ["eli_lazos", "grace_lewis", "james_davis"],
+    persons: ["ashley_blonde", "benjamin_wilson", "clay_targaryen"],
   },
   room_119: {
     persons: ["juan_dela_cruz", "lucas_anderson"],
@@ -89,20 +89,20 @@ class MapView extends LitElement {
     Object.keys(roomAttributes).forEach((roomKey) => {
       const parsedValue = roomAttributes[roomKey];
 
-      if (parsedValue && parsedValue.response) {
+      if (parsedValue && parsedValue.state) {
+        const svgAttribute = parsedValue.attributes;
+
         const svgElement = this.shadowRoot?.querySelector(
-          `#${parsedValue.friendly_name}`
+          `#${svgAttribute.friendly_name}`
         ) as SVGElement;
 
         const svgElementStatus = this.shadowRoot?.querySelector(
-          `#status_${parsedValue.friendly_name}`
+          `#status_${svgAttribute.friendly_name}`
         ) as SVGElement;
 
         if (svgElement) {
           const fillColor =
-            stateToColorMap[
-              parsedValue.response as keyof typeof stateToColorMap
-            ];
+            stateToColorMap[parsedValue.state as keyof typeof stateToColorMap];
 
           if (fillColor) {
             svgElement.removeAttribute("class");
@@ -110,44 +110,50 @@ class MapView extends LitElement {
             svgElement.style.setProperty("opacity", "1");
           }
 
-          if (svgElementStatus) {
+          if (svgElementStatus && parsedValue.state !== "0") {
             svgElementStatus.style.setProperty("opacity", "1");
+
+            const bgStatusGroup = svgElementStatus?.querySelector(
+              "#bg_status"
+            ) as SVGGElement;
+
+            if (bgStatusGroup) {
+              const pathElement = bgStatusGroup.querySelector(
+                ".bg_status_color"
+              ) as SVGPathElement;
+
+              const allPathElementIcons = bgStatusGroup.querySelectorAll(
+                "[id^='bg_status_icon_']"
+              ) as NodeListOf<SVGPathElement>;
+
+              allPathElementIcons.forEach((icon) => {
+                icon.setAttribute("style", "opacity: 0;");
+              });
+
+              const pathElementIcon = bgStatusGroup.querySelector(
+                `#bg_status_icon_${parsedValue.state}`
+              ) as SVGPathElement;
+
+              if (pathElement) {
+                pathElement.style.setProperty("opacity", "1");
+                pathElement.setAttribute("fill", fillColor);
+              }
+
+              if (pathElementIcon) {
+                pathElementIcon.setAttribute("style", "opacity: 1;");
+              }
+            }
           }
 
-          const bgStatusGroup = svgElementStatus?.querySelector(
-            "#bg_status"
-          ) as SVGGElement;
+          // console.log("[bgStatusGroup ::>]", {
+          //   roomKey,
+          //   bgStatusGroup,
+          //   svgElementStatus,
+          // });
 
           const commandGroup = svgElementStatus?.querySelector(
             "#command"
           ) as SVGGElement;
-
-          if (bgStatusGroup) {
-            const pathElement = bgStatusGroup.querySelector(
-              ".bg_status_color"
-            ) as SVGPathElement;
-
-            const allPathElementIcons = bgStatusGroup.querySelectorAll(
-              "[id^='bg_status_icon_']"
-            ) as NodeListOf<SVGPathElement>;
-
-            allPathElementIcons.forEach((icon) => {
-              icon.setAttribute("style", "opacity: 0;");
-            });
-
-            const pathElementIcon = bgStatusGroup.querySelector(
-              `#bg_status_icon_${parsedValue.response}`
-            ) as SVGPathElement;
-
-            if (pathElement) {
-              pathElement.style.setProperty("opacity", "1");
-              pathElement.setAttribute("fill", fillColor);
-            }
-
-            if (pathElementIcon) {
-              pathElementIcon.setAttribute("style", "opacity: 1;");
-            }
-          }
 
           if (commandGroup && parsedValue.command) {
             commandGroup.setAttribute("style", "opacity: 1;");
@@ -173,7 +179,7 @@ class MapView extends LitElement {
 
       if (roomEntity) {
         try {
-          this.roomAttributes[entityId] = roomEntity.attributes;
+          this.roomAttributes[entityId] = roomEntity;
         } catch (err) {
           this.handleError(err);
         }
@@ -202,7 +208,7 @@ class MapView extends LitElement {
 
   private checkRoomsForNotOkayStatus() {
     this.hasNotOkayRoom = Object.values(this.roomAttributes).some(
-      (room) => room.response !== ""
+      (room) => room.state !== ""
     );
   }
 
@@ -229,14 +235,14 @@ class MapView extends LitElement {
           Object.keys(rooms).forEach((roomKey) => {
             const updatedRoom = rooms[roomKey];
 
-            if (updatedRoom && updatedRoom["+"].a) {
-              const newResponse = updatedRoom["+"].a.response;
+            if (updatedRoom && updatedRoom["+"].s) {
+              const newResponse = updatedRoom["+"].s;
 
               this.roomAttributes = {
                 ...this.roomAttributes,
                 [roomKey]: {
                   ...this.roomAttributes[roomKey],
-                  response: newResponse,
+                  state: newResponse,
                 },
               };
 

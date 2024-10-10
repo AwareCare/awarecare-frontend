@@ -7,7 +7,6 @@ import { property, state } from "lit/decorators";
 import {
   mdiChevronRight,
   mdiChevronDown,
-  mdiFormatQuoteOpen,
   mdiSend,
   mdiPistol,
   mdiFire,
@@ -25,6 +24,7 @@ import { getPersonCountByStatus } from "../../../../util/person-status-order-cou
 import { stateIconMap } from "../../../../common/entity/state-icon-map";
 
 import "./dialog-command";
+import { classroomCommandMap } from "../../../../classroom-command-map";
 
 class MapRightNavigation extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
@@ -107,8 +107,8 @@ class MapRightNavigation extends LitElement {
 
       if (entity) {
         try {
-          roomsUnsorted[entityId] = entity.attributes;
-          if (!isEmpty(entity.attributes.response)) {
+          roomsUnsorted[entityId] = entity;
+          if (entity.state !== "0") {
             const roomId = entityId.replace("room.", "");
             if (!this.selectedRooms.includes(roomId)) {
               this.selectedRooms.push(roomId);
@@ -189,10 +189,17 @@ class MapRightNavigation extends LitElement {
   protected render() {
     return html`
       <div class="accordion">
-        ${Object.entries(this.roomsEntities).map(([entityId, attributes]) => {
+        ${Object.entries(this.roomsEntities).map(([entityId, roomDatum]) => {
+          const attributes = roomDatum.attributes;
+
           const personBadge = getPersonCountByStatus(attributes.persons);
-          const response = attributes.response;
-          const hide = isEmpty(response) ? "hide" : "";
+          const response = roomDatum.state;
+          const hide =
+            isEmpty(response) || response === "0" || response === " "
+              ? "hide"
+              : "";
+
+          const stateDetails = classroomCommandMap[attributes.command];
 
           return html` <div
             class="accordion-item ${response} ${attributes.friendly_name} ${hide}"
@@ -203,30 +210,37 @@ class MapRightNavigation extends LitElement {
                 ${(attributes.friendly_name || "")
                   .replace("_", " ")
                   .toUpperCase()}
-                ${attributes.response &&
+                | ${response}
+                ${response.toString() !== "0" &&
                 html`
                   <span class="section-status"
                     ><ha-svg-icon
-                      .path=${this.mapResponseToIcon(attributes.response)}
+                      .path=${this.mapResponseToIcon(response)}
                       .width=${16}
                       .height=${16}
                     ></ha-svg-icon>
-                    ${personBadge && personBadge.type !== "ok"
-                      ? html` <span class="badge counter ${personBadge.type}">
+                    ${personBadge && personBadge?.type !== "ok"
+                      ? html` <span class="badge counter ${personBadge?.type}">
                           ${personBadge?.count}
                         </span>`
                       : null}
-                    ${attributes.command &&
+                    ${attributes?.command &&
                     html`
-                      <span class="badge command">
-                        <ha-svg-icon
-                          .path=${mdiFormatQuoteOpen}
-                          .width=${12}
-                          .height=${12}
-                        >
-                        </ha-svg-icon
-                      ></span>
-                    `}
+                      <span
+                      class="badge command"
+                      style="background: ${
+                        attributes?.response ? stateDetails?.color : ""
+                      }"
+                    >
+                      <ha-svg-icon
+                        .path=${stateDetails?.icon}
+                        .width=${12}
+                        .height=${12}
+                      >
+                      </ha-svg-icon
+                    ></span>
+                  </span>
+                      `}
                   </span>
                 `}
               </div>
@@ -502,8 +516,8 @@ class MapRightNavigation extends LitElement {
             .command {
               right: -8px;
               background: #feca57;
-              color: #0a0a0a;
-              border-color: #0a0a0a;
+              color: #ffffff;
+              border-color: #ffffff;
             }
           }
         }
