@@ -11,7 +11,6 @@ import { customElement, property, state } from "lit/decorators";
 import { ifDefined } from "lit/directives/if-defined";
 import { styleMap } from "lit/directives/style-map";
 import { applyThemesOnElement } from "../../../common/dom/apply_themes_on_element";
-import { fireEvent } from "../../../common/dom/fire_event";
 import { computeStateDomain } from "../../../common/entity/compute_state_domain";
 import { computeStateName } from "../../../common/entity/compute_state_name";
 import {
@@ -39,6 +38,8 @@ import { createHeaderFooterElement } from "../create-element/create-header-foote
 import { LovelaceCard, LovelaceHeaderFooter } from "../types";
 import { HuiErrorCard } from "./hui-error-card";
 import { EntityCardConfig } from "./types";
+
+import { classroomCommandMap } from "../../../classroom-command-map";
 
 @customElement("hui-entity-card")
 export class HuiEntityCard extends LitElement implements LovelaceCard {
@@ -70,6 +71,8 @@ export class HuiEntityCard extends LitElement implements LovelaceCard {
   @property({ attribute: false }) public hass?: HomeAssistant;
 
   @state() private _config?: EntityCardConfig;
+
+  @state() private roomResponse: string = "";
 
   private _footerElement?: HuiErrorCard | LovelaceHeaderFooter;
 
@@ -110,6 +113,7 @@ export class HuiEntityCard extends LitElement implements LovelaceCard {
     }
 
     const stateObj = this.hass.states[this._config.entity];
+    this.roomResponse = stateObj.attributes.response || "";
 
     if (!stateObj) {
       return html`
@@ -128,62 +132,130 @@ export class HuiEntityCard extends LitElement implements LovelaceCard {
 
     const colored = stateObj && this.getStateColor(stateObj, this._config);
 
+    const stateDetails = classroomCommandMap[stateObj.attributes.command];
+
     return html`
-      <ha-card @click=${this._handleClick} tabindex="0">
-        <div class="header">
-          <div class="name" .title=${name}>${name}</div>
-          <div class="icon">
-            <ha-state-icon
-              .icon=${this._config.icon}
-              .stateObj=${stateObj}
-              .hass=${this.hass}
-              data-domain=${ifDefined(domain)}
-              data-state=${stateObj.state}
-              style=${styleMap({
-                color: colored ? this._computeColor(stateObj) : undefined,
-                filter: colored ? stateColorBrightness(stateObj) : undefined,
-                height: this._config.icon_height
-                  ? this._config.icon_height
-                  : "",
-              })}
-            ></ha-state-icon>
+      <ha-card class="custom-card" tabindex="0">
+        ${stateObj.entity_id.includes("room.")
+          ? html`<div class="header custom-btn">
+          <div class="state-icon" style="background-color: ${stateDetails.color}">
+            <ha-svg-icon
+              .path=${stateDetails.icon}
+              .width=${36}
+              .height=${36}
+            ></ha-svg-icon>
+          </div>
+          <div class="command">
+            <p class="value"></p>
+              ${
+                "attribute" in this._config
+                  ? stateObj.attributes[this._config.attribute!] !== undefined
+                    ? html`
+                        <ha-attribute-value
+                          hide-unit
+                          .hass=${this.hass}
+                          .stateObj=${stateObj}
+                          .attribute=${this._config.attribute!}
+                        >
+                        </ha-attribute-value>
+                      `
+                    : this.hass.localize("state.default.unknown")
+                  : isNumericState(stateObj) || this._config.unit
+                    ? formatNumber(
+                        stateObj.state,
+                        this.hass.locale,
+                        getNumberFormatOptions(
+                          stateObj,
+                          this.hass.entities[this._config.entity]
+                        )
+                      )
+                    : this.hass.formatEntityState(stateObj)
+              }
+            </p>
+            ${
+              showUnit
+                ? html`
+                    <span class="measurement"
+                      >${this._config.unit ||
+                      (this._config.attribute
+                        ? ""
+                        : stateObj.attributes.unit_of_measurement)}</span
+                    >
+                  `
+                : ""
+            }
+
+            <p>${stateDetails.message}</p>
           </div>
         </div>
-        <div class="info">
-          <span class="value"
-            >${"attribute" in this._config
-              ? stateObj.attributes[this._config.attribute!] !== undefined
-                ? html`
-                    <ha-attribute-value
-                      hide-unit
-                      .hass=${this.hass}
-                      .stateObj=${stateObj}
-                      .attribute=${this._config.attribute!}
-                    >
-                    </ha-attribute-value>
-                  `
-                : this.hass.localize("state.default.unknown")
-              : isNumericState(stateObj) || this._config.unit
-                ? formatNumber(
-                    stateObj.state,
-                    this.hass.locale,
-                    getNumberFormatOptions(
-                      stateObj,
-                      this.hass.entities[this._config.entity]
-                    )
-                  )
-                : this.hass.formatEntityState(stateObj)}</span
-          >${showUnit
-            ? html`
-                <span class="measurement"
-                  >${this._config.unit ||
-                  (this._config.attribute
-                    ? ""
-                    : stateObj.attributes.unit_of_measurement)}</span
-                >
-              `
-            : ""}
+
+        <div class="container-actions">
+          <div class="custom-btn-actions">
+              <button class="btn-action ${this.roomResponse === "ok" ? "active" : ""}" id="ok" @click=${this._sendResponse}>OK</button>
+              <button class="btn-action ${this.roomResponse === "help" ? "active" : ""}" id="help" @click=${this._sendResponse}>HELP</button>
+          </div>
+          <div class="custom-btn-actions">
+              <button class="btn-action ${this.roomResponse === "alert" ? "active" : ""}" id="alert" @click=${this._sendResponse}>ALERT</button>
+              <button class="btn-action ${this.roomResponse === "medical" ? "active" : ""}" id="medical" @click=${this._sendResponse}>MEDICAL</button>
+          </div>
         </div>
+        `
+          : html`<div class="header">
+                <div class="name" .title=${name}>${name}</div>
+                <div class="icon">
+                  <ha-state-icon
+                    .icon=${this._config.icon}
+                    .stateObj=${stateObj}
+                    .hass=${this.hass}
+                    data-domain=${ifDefined(domain)}
+                    data-state=${stateObj.state}
+                    style=${styleMap({
+                      color: colored ? this._computeColor(stateObj) : undefined,
+                      filter: colored
+                        ? stateColorBrightness(stateObj)
+                        : undefined,
+                      height: this._config.icon_height
+                        ? this._config.icon_height
+                        : "",
+                    })}
+                  ></ha-state-icon>
+                </div>
+              </div>
+              <div class="info">
+                <span class="value"
+                  >${"attribute" in this._config
+                    ? stateObj.attributes[this._config.attribute!] !== undefined
+                      ? html`
+                          <ha-attribute-value
+                            hide-unit
+                            .hass=${this.hass}
+                            .stateObj=${stateObj}
+                            .attribute=${this._config.attribute!}
+                          >
+                          </ha-attribute-value>
+                        `
+                      : this.hass.localize("state.default.unknown")
+                    : isNumericState(stateObj) || this._config.unit
+                      ? formatNumber(
+                          stateObj.state,
+                          this.hass.locale,
+                          getNumberFormatOptions(
+                            stateObj,
+                            this.hass.entities[this._config.entity]
+                          )
+                        )
+                      : this.hass.formatEntityState(stateObj)}</span
+                >${showUnit
+                  ? html`
+                      <span class="measurement"
+                        >${this._config.unit ||
+                        (this._config.attribute
+                          ? ""
+                          : stateObj.attributes.unit_of_measurement)}</span
+                      >
+                    `
+                  : ""}
+              </div>`}
         ${this._footerElement}
       </ha-card>
     `;
@@ -237,8 +309,28 @@ export class HuiEntityCard extends LitElement implements LovelaceCard {
     }
   }
 
-  private _handleClick(): void {
-    fireEvent(this, "hass-more-info", { entityId: this._config!.entity });
+  private async _sendResponse(event: Event) {
+    const target = event.currentTarget as HTMLElement;
+    const cmdValue = target.getAttribute("id") || "";
+
+    if (!this.hass) {
+      return;
+    }
+
+    const roomState = this.hass.states[this._config!.entity];
+    const roomStateAttributes = roomState.attributes;
+
+    roomStateAttributes.response = cmdValue;
+    this.roomResponse = cmdValue;
+
+    try {
+      await this.hass.callApi("POST", "states/" + this._config!.entity, {
+        state: roomState.state,
+        attributes: roomStateAttributes,
+      });
+    } catch (e: any) {
+      throw e.body?.message || "Unknown error";
+    }
   }
 
   static get styles(): CSSResultGroup {
@@ -252,6 +344,76 @@ export class HuiEntityCard extends LitElement implements LovelaceCard {
           justify-content: space-between;
           cursor: pointer;
           outline: none;
+        }
+
+        .custom-card {
+          background-color: #ffcf68;
+          color: #222021;
+        }
+
+        .container-actions {
+          margin: 12px 0 24px 0;
+        }
+
+        .custom-btn {
+          justify-content: start !important;
+          padding: 24px 32px 0 !important;
+          align-items: center;
+
+          p {
+            margin: 0;
+          }
+
+          ha-attribute-value {
+            text-transform: uppercase;
+            font-size: 22px;
+            font-weight: bold;
+          }
+        }
+
+        .custom-btn-actions {
+          padding: 6px 32px !important;
+          display: flex;
+          justify-content: space-between;
+
+          .btn-action {
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            border-radius: 8px;
+            width: 100%;
+            margin: 0 4px;
+            height: 56px;
+            background: #212222;
+            border-color: #454545;
+
+            &.active {
+              &#ok {
+                background: #1dd1a1;
+              }
+              &#help {
+                background: #ed5d5d;
+              }
+              &#alert {
+                background: #ffcb2d;
+              }
+              &#medical {
+                background: #6fa1d6;
+              }
+            }
+
+            &:hover {
+              background-color: #2e2e2e !important;
+            }
+          }
+        }
+
+        .state-icon {
+          background-color: red;
+          border-radius: 50%;
+          padding: 8px;
+          margin-right: 12px;
+          color: white;
         }
 
         .header {

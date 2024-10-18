@@ -289,6 +289,7 @@ export class MoreInfoDialog extends LitElement {
         .heading=${title}
         hideActions
         flexContent
+        @status-updated=${this.closeDialog}
       >
         <ha-dialog-header slot="heading">
           ${showCloseIcon
@@ -483,12 +484,13 @@ export class MoreInfoDialog extends LitElement {
                       .hideInfo=${true}
                     ></ha-more-info-info>
 
-                    <quick-action-buttons
+                    ${this._entityId.includes("person.") &&
+                    html` <quick-action-buttons
                       .hass=${this.hass}
                       .entityId=${this._entityId}
                       .onStatusUpdated=${this.closeDialog}
                     >
-                    </quick-action-buttons>
+                    </quick-action-buttons>`}
                   `
                 : this._currView === "history"
                   ? html`
