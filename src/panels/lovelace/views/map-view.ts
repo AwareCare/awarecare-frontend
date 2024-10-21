@@ -7,12 +7,14 @@ import {
   mdiMapMarkerRadius,
   mdiArrowExpand,
   mdiGrid,
-  mdiChevronRight,
-  mdiChevronDown,
   mdiSend,
   mdiExitRun,
   mdiEyeOff,
   mdiHomeLock,
+  mdiDoorClosedLock,
+  mdiSecurity,
+  mdiLock,
+  mdiHomeRoof,
 } from "@mdi/js";
 
 import { css, CSSResultGroup, html, LitElement, PropertyValues } from "lit";
@@ -79,12 +81,23 @@ class MapView extends LitElement {
 
   @state() private clickedRoom: string = "";
 
+  @state() private clickedRoomList: string[] = [];
+
   @state() private hasNotOkayRoom: boolean = false;
 
   updated(changedProperties: Map<string, unknown>) {
     super.updated(changedProperties);
 
     const roomAttributes = this.roomAttributes as Record<string, any>;
+
+    // Define the mapping for command icons
+    const commandIcon = {
+      hold: mdiDoorClosedLock,
+      secure: mdiSecurity,
+      lockdown: mdiLock,
+      evacuate: mdiExitRun,
+      shelter: mdiHomeRoof,
+    };
 
     Object.keys(roomAttributes).forEach((roomKey) => {
       const parsedValue = roomAttributes[roomKey];
@@ -104,10 +117,14 @@ class MapView extends LitElement {
           const fillColor =
             stateToColorMap[parsedValue.state as keyof typeof stateToColorMap];
 
-          if (fillColor) {
+          if (
+            fillColor &&
+            !this.clickedRoomList.includes(svgAttribute.friendly_name)
+          ) {
             svgElement.removeAttribute("class");
             svgElement.setAttribute("fill", fillColor);
-            svgElement.style.setProperty("opacity", "1");
+            svgElement.style.setProperty("opacity", "50%");
+            svgElement.classList.add("hasStatus");
           }
 
           if (svgElementStatus && parsedValue.state !== "0") {
@@ -145,18 +162,39 @@ class MapView extends LitElement {
             }
           }
 
-          // console.log("[bgStatusGroup ::>]", {
-          //   roomKey,
-          //   bgStatusGroup,
-          //   svgElementStatus,
-          // });
-
           const commandGroup = svgElementStatus?.querySelector(
             "#command"
           ) as SVGGElement;
 
-          if (commandGroup && parsedValue.command) {
+          if (commandGroup && svgAttribute.command) {
             commandGroup.setAttribute("style", "opacity: 1;");
+
+            const commandValue = svgAttribute.command;
+            const responseValue = svgAttribute.response;
+            const commandPath = commandIcon[commandValue];
+
+            if (commandPath) {
+              const dynamicCmdIcon = commandGroup.querySelector(
+                "#dynamic-cmd-icon path"
+              ) as SVGPathElement;
+
+              const badgeBgColor = svgElementStatus.querySelector(
+                ".s11"
+              ) as SVGGElement;
+
+              if (dynamicCmdIcon) {
+                dynamicCmdIcon.setAttribute("d", commandPath);
+              }
+
+              if (responseValue && badgeBgColor) {
+                if (badgeBgColor.classList.contains("s11")) {
+                  badgeBgColor.classList.remove("s11");
+                  badgeBgColor.classList.add("hasResponse");
+                }
+
+                badgeBgColor.classList.add(responseValue);
+              }
+            }
           }
         }
       }
@@ -203,12 +241,12 @@ class MapView extends LitElement {
       }
     });
 
-    this.checkRoomsForNotOkayStatus();
+    // this.checkRoomsForNotOkayStatus();
   }
 
   private checkRoomsForNotOkayStatus() {
     this.hasNotOkayRoom = Object.values(this.roomAttributes).some(
-      (room) => room.state !== ""
+      (room) => room.state !== "0"
     );
   }
 
@@ -234,6 +272,14 @@ class MapView extends LitElement {
 
           Object.keys(rooms).forEach((roomKey) => {
             const updatedRoom = rooms[roomKey];
+
+            if (updatedRoom && updatedRoom["+"].a) {
+              const newCommand = updatedRoom["+"].a.command;
+
+              this.roomAttributes[roomKey].attributes.command = newCommand;
+
+              this.requestUpdate();
+            }
 
             if (updatedRoom && updatedRoom["+"].s) {
               const newResponse = updatedRoom["+"].s;
@@ -350,7 +396,7 @@ class MapView extends LitElement {
       <div class="container">
         <div
           class="svg-map ${this.hasNotOkayRoom}"
-          style=${this.hasNotOkayRoom ? "width: 75%" : ""}
+          style=${this.clickedRoomList.length > 0 ? "width: 75%" : ""}
         >
           <div class="map-name">
             <h2>Campus Map</h2>
@@ -361,7 +407,7 @@ class MapView extends LitElement {
         <div
           class="right-menu"
           id="right-menu"
-          style=${this.hasNotOkayRoom ? "display: flex" : ""}
+          style=${this.clickedRoomList.length > 0 ? "display: flex" : ""}
         >
           <map-right-navigation
             .hass=${this.hass}
@@ -485,7 +531,6 @@ class MapView extends LitElement {
   }
 
   protected firstUpdated(_changedProperties: PropertyValues) {
-    // this.addAccordionListeners();
     this._addSvgMap();
   }
 
@@ -506,10 +551,15 @@ class MapView extends LitElement {
 		.t9 { font-size: 6px;fill: #ffffff;font-weight: 700;font-family: "SourceSansPro-Bold", "Source Sans Pro" }
 		.s10 { fill: #000000 }
 		.s11 { fill: #feca57;stroke: #ffffff;stroke-miterlimit:10;stroke-width: 1.4 }
-		.s12 { fill: #231f20 }
+		.s12 { fill: #ffffff }
 		.s13 { fill: #ea4849;stroke: #ffffff;stroke-miterlimit:10;stroke-width: 1.4 }
 		.s14 { fill: #ffffff }
 		.bg_status_color { opacity: 0 }
+		.hasResponse{stroke: #ffffff;stroke-miterlimit:10;stroke-width: 1.4}
+		.ok { fill: #1dd1a1 }
+		.help { fill: #ed5d5d}
+		.alert { fill: #ffcb2d}
+		.medical { fill: #6fa1d6}
 		#areas .s5 { fill: #656565 }
 	</style>
 	<g>
@@ -2099,7 +2149,7 @@ class MapView extends LitElement {
 		<g id="areas">
 			<path id="room_145" class="s5" d="m766.5 522.1l48.6 34.9 13.5-17.4h98.7v-77.6h-16.5v-8.1h-16.3v-5.3h-76.1z"/>
 			<path id="room_132" class="s5" d="m1177.6 333.5v17.4h-18.6v51.5h13.8v16.9h88.3v-85.3z"/>
-			<path id="middle_east_wing" class="s5" d="m874.7 333.4h261.5v85.4h-261.5z"/>
+			<path id="room_126" class="s5" d="m874.7 333.4h261.5v85.4h-261.5z"/>
 			<path id="room_114" class="s5" d="m818 333.4v85.4h-115.4v-85.4z"/>
 			<path id="room_142" class="s5" d="m944.2 454.2h16.4v-12.8h49v98.2h-79.2v-76.8h13.8z"/>
 			<path id="room_133" class="s5" d="m1192.1 454.2h16.4v-12.8h49v98.2h-79.3v-76.8h13.9z"/>
@@ -2470,7 +2520,9 @@ class MapView extends LitElement {
 				</g>
 				<g id="command" style="opacity: 0">
 					<path class="s11" d="m1054.7 357.9c-4.1 0-7.5-3.4-7.5-7.5 0-4.1 3.4-7.5 7.5-7.5 4.1 0 7.5 3.4 7.5 7.5 0 4.1-3.4 7.5-7.5 7.5z"/>
-					<path id="+C" class="s12" d="m1052.2 353.1h-1.1v-1.9h-1.8v-1h1.8v-1.9h1.1v1.9h1.7v1h-1.7zm5.6 1.1q-0.8 0-1.5-0.4-0.7-0.4-1.2-1.1-0.4-0.8-0.4-1.9 0-1 0.5-1.8 0.4-0.8 1.1-1.2 0.7-0.4 1.5-0.4 0.7 0 1.2 0.3 0.5 0.2 0.8 0.6l-0.8 0.9q-0.3-0.2-0.5-0.4-0.3-0.1-0.7-0.1-0.4 0-0.8 0.2-0.3 0.3-0.5 0.8-0.3 0.4-0.3 1.1 0 1 0.5 1.5 0.4 0.6 1.1 0.6 0.4 0 0.7-0.2 0.4-0.1 0.6-0.4l0.8 0.9q-0.8 1-2.1 1z"/>
+					<svg id="dynamic-cmd-icon" class="s12" x="1049" y="344" width="12" height="12" viewBox="0 0 24 24">
+							<path d="${mdiHomeLock}" />
+					</svg>
 				</g>
 				<g id="counter" style="opacity: 0">
 					<path class="s13" d="m1030.7 357.9c-4.1 0-7.5-3.4-7.5-7.5 0-4.1 3.4-7.5 7.5-7.5 4.1 0 7.5 3.4 7.5 7.5 0 4.1-3.4 7.5-7.5 7.5z"/>
@@ -2489,7 +2541,9 @@ class MapView extends LitElement {
 				</g>
 				<g id="command" style="opacity: 0">
 					<path class="s11" d="m1000.7 237.9c-4.1 0-7.5-3.4-7.5-7.5 0-4.1 3.4-7.5 7.5-7.5 4.1 0 7.5 3.4 7.5 7.5 0 4.1-3.4 7.5-7.5 7.5z"/>
-					<path id="+C" class="s12" d="m998.2 233.1h-1.1v-1.9h-1.8v-1h1.8v-1.9h1.1v1.9h1.7v1h-1.7zm5.6 1.1q-0.8 0-1.5-0.4-0.7-0.4-1.2-1.1-0.4-0.8-0.4-1.9 0-1 0.5-1.8 0.4-0.8 1.1-1.2 0.7-0.4 1.5-0.4 0.7 0 1.2 0.3 0.5 0.2 0.8 0.6l-0.8 0.9q-0.3-0.2-0.5-0.4-0.3-0.1-0.7-0.1-0.4 0-0.8 0.2-0.3 0.3-0.5 0.8-0.3 0.4-0.3 1.1 0 1 0.5 1.5 0.4 0.6 1.1 0.6 0.4 0 0.7-0.2 0.4-0.1 0.6-0.4l0.8 0.9q-0.8 1-2.1 1z"/>
+					<svg id="dynamic-cmd-icon" class="s12" x="995" y="224" width="12" height="12" viewBox="0 0 24 24">
+							<path d="${mdiHomeLock}" />
+					</svg>
 				</g>
 				<g id="counter" style="opacity: 0">
 					<path class="s13" d="m976.7 237.9c-4.1 0-7.5-3.4-7.5-7.5 0-4.1 3.4-7.5 7.5-7.5 4.1 0 7.5 3.4 7.5 7.5 0 4.1-3.4 7.5-7.5 7.5z"/>
@@ -2508,7 +2562,9 @@ class MapView extends LitElement {
 				</g>
 				<g id="command" style="opacity: 0">
 					<path class="s11" d="m920.7 237.9c-4.1 0-7.5-3.4-7.5-7.5 0-4.1 3.4-7.5 7.5-7.5 4.1 0 7.5 3.4 7.5 7.5 0 4.1-3.4 7.5-7.5 7.5z"/>
-					<path id="+C" class="s12" d="m918.2 233.1h-1.1v-1.9h-1.8v-1h1.8v-1.9h1.1v1.9h1.7v1h-1.7zm5.6 1.1q-0.8 0-1.5-0.4-0.7-0.4-1.2-1.1-0.4-0.8-0.4-1.9 0-1 0.5-1.8 0.4-0.8 1.1-1.2 0.7-0.4 1.5-0.4 0.7 0 1.2 0.3 0.5 0.2 0.8 0.6l-0.8 0.9q-0.3-0.2-0.5-0.4-0.3-0.1-0.7-0.1-0.4 0-0.8 0.2-0.3 0.3-0.5 0.8-0.3 0.4-0.3 1.1 0 1 0.5 1.5 0.4 0.6 1.1 0.6 0.4 0 0.7-0.2 0.4-0.1 0.6-0.4l0.8 0.9q-0.8 1-2.1 1z"/>
+					<svg id="dynamic-cmd-icon" class="s12" x="915" y="224" width="12" height="12" viewBox="0 0 24 24">
+							<path d="${mdiHomeLock}" />
+					</svg>
 				</g>
 				<g id="counter" style="opacity: 0">
 					<path class="s13" d="m896.7 237.9c-4.1 0-7.5-3.4-7.5-7.5 0-4.1 3.4-7.5 7.5-7.5 4.1 0 7.5 3.4 7.5 7.5 0 4.1-3.4 7.5-7.5 7.5z"/>
@@ -2527,7 +2583,9 @@ class MapView extends LitElement {
 				</g>
 				<g id="command" style="opacity: 0">
 					<path class="s11" d="m775.7 357.9c-4.1 0-7.5-3.4-7.5-7.5 0-4.1 3.4-7.5 7.5-7.5 4.1 0 7.5 3.4 7.5 7.5 0 4.1-3.4 7.5-7.5 7.5z"/>
-					<path id="+C" class="s12" d="m773.2 353.1h-1.1v-1.9h-1.8v-1h1.8v-1.9h1.1v1.9h1.7v1h-1.7zm5.6 1.1q-0.8 0-1.5-0.4-0.7-0.4-1.2-1.1-0.4-0.8-0.4-1.9 0-1 0.5-1.8 0.4-0.8 1.1-1.2 0.7-0.4 1.5-0.4 0.7 0 1.2 0.3 0.5 0.2 0.8 0.6l-0.8 0.9q-0.3-0.2-0.5-0.4-0.3-0.1-0.7-0.1-0.4 0-0.8 0.2-0.3 0.3-0.5 0.8-0.3 0.4-0.3 1.1 0 1 0.5 1.5 0.4 0.6 1.1 0.6 0.4 0 0.7-0.2 0.4-0.1 0.6-0.4l0.8 0.9q-0.8 1-2.1 1z"/>
+					<svg id="dynamic-cmd-icon" class="s12" x="770" y="344" width="12" height="12" viewBox="0 0 24 24">
+							<path d="${mdiHomeLock}" />
+					</svg>
 				</g>
 				<g id="counter" style="opacity: 0">
 					<path class="s13" d="m751.7 357.9c-4.1 0-7.5-3.4-7.5-7.5 0-4.1 3.4-7.5 7.5-7.5 4.1 0 7.5 3.4 7.5 7.5 0 4.1-3.4 7.5-7.5 7.5z"/>
@@ -2546,7 +2604,9 @@ class MapView extends LitElement {
 				</g>
 				<g id="command" style="opacity: 0">
 					<path class="s11" d="m834.7 237.9c-4.1 0-7.5-3.4-7.5-7.5 0-4.1 3.4-7.5 7.5-7.5 4.1 0 7.5 3.4 7.5 7.5 0 4.1-3.4 7.5-7.5 7.5z"/>
-					<path id="+C" class="s12" d="m832.2 233.1h-1.1v-1.9h-1.8v-1h1.8v-1.9h1.1v1.9h1.7v1h-1.7zm5.6 1.1q-0.8 0-1.5-0.4-0.7-0.4-1.2-1.1-0.4-0.8-0.4-1.9 0-1 0.5-1.8 0.4-0.8 1.1-1.2 0.7-0.4 1.5-0.4 0.7 0 1.2 0.3 0.5 0.2 0.8 0.6l-0.8 0.9q-0.3-0.2-0.5-0.4-0.3-0.1-0.7-0.1-0.4 0-0.8 0.2-0.3 0.3-0.5 0.8-0.3 0.4-0.3 1.1 0 1 0.5 1.5 0.4 0.6 1.1 0.6 0.4 0 0.7-0.2 0.4-0.1 0.6-0.4l0.8 0.9q-0.8 1-2.1 1z"/>
+					<svg id="dynamic-cmd-icon" class="s12" x="829" y="224" width="12" height="12" viewBox="0 0 24 24">
+							<path d="${mdiHomeLock}" />
+					</svg>
 				</g>
 				<g id="counter" style="opacity: 0">
 					<path class="s13" d="m810.7 237.9c-4.1 0-7.5-3.4-7.5-7.5 0-4.1 3.4-7.5 7.5-7.5 4.1 0 7.5 3.4 7.5 7.5 0 4.1-3.4 7.5-7.5 7.5z"/>
@@ -2565,7 +2625,9 @@ class MapView extends LitElement {
 				</g>
 				<g id="command" style="opacity: 0">
 					<path class="s11" d="m754.7 237.9c-4.1 0-7.5-3.4-7.5-7.5 0-4.1 3.4-7.5 7.5-7.5 4.1 0 7.5 3.4 7.5 7.5 0 4.1-3.4 7.5-7.5 7.5z"/>
-					<path id="+C" class="s12" d="m752.2 233.1h-1.1v-1.9h-1.8v-1h1.8v-1.9h1.1v1.9h1.7v1h-1.7zm5.6 1.1q-0.8 0-1.5-0.4-0.7-0.4-1.2-1.1-0.4-0.8-0.4-1.9 0-1 0.5-1.8 0.4-0.8 1.1-1.2 0.7-0.4 1.5-0.4 0.7 0 1.2 0.3 0.5 0.2 0.8 0.6l-0.8 0.9q-0.3-0.2-0.5-0.4-0.3-0.1-0.7-0.1-0.4 0-0.8 0.2-0.3 0.3-0.5 0.8-0.3 0.4-0.3 1.1 0 1 0.5 1.5 0.4 0.6 1.1 0.6 0.4 0 0.7-0.2 0.4-0.1 0.6-0.4l0.8 0.9q-0.8 1-2.1 1z"/>
+					<svg id="dynamic-cmd-icon" class="s12" x="749" y="224" width="12" height="12" viewBox="0 0 24 24">
+							<path d="${mdiHomeLock}" />
+					</svg>
 				</g>
 				<g id="counter" style="opacity: 0">
 					<path class="s13" d="m730.7 237.9c-4.1 0-7.5-3.4-7.5-7.5 0-4.1 3.4-7.5 7.5-7.5 4.1 0 7.5 3.4 7.5 7.5 0 4.1-3.4 7.5-7.5 7.5z"/>
@@ -2609,7 +2671,19 @@ class MapView extends LitElement {
   private _changeSectionColor(sectionElement: SVGElement, sectionId: string) {
     sectionElement.setAttribute("style", "opacity: 1;");
 
-    this.clickedRoom = sectionId;
+    const index = this.clickedRoomList.indexOf(sectionId);
+    if (index > -1) {
+      this.clickedRoomList.splice(index, 1);
+      if (sectionElement.classList.contains("hasStatus")) {
+        sectionElement.setAttribute("style", "opacity: 50%;");
+      } else {
+        sectionElement.setAttribute("style", "opacity: 0;");
+      }
+    } else {
+      this.clickedRoomList.push(sectionId);
+    }
+
+    this.handleRoomClicked(sectionId);
 
     const rightMenu = this.shadowRoot!.querySelector(".right-menu");
     const svgContainer = this.shadowRoot!.querySelector(".svg-map");
@@ -2623,42 +2697,9 @@ class MapView extends LitElement {
     }
   }
 
-  private addAccordionListeners() {
-    const headers = this.shadowRoot!.querySelectorAll(".accordion-header");
-    headers.forEach((header) => {
-      header.addEventListener("click", () => {
-        this.toggleAccordionContent(header as HTMLElement);
-      });
-    });
-  }
-
-  private toggleAccordionContent(element: HTMLElement): void {
-    const content = element.nextElementSibling as HTMLElement;
-    const icon = element.querySelector(
-      ".accordion-icon ha-svg-icon"
-    ) as LitElement;
-
-    if (content.classList.contains("open")) {
-      content.style.maxHeight = `${content.scrollHeight}px`;
-      requestAnimationFrame(() => {
-        content.style.maxHeight = "0";
-        content.style.padding = "0 10px";
-        content.classList.remove("open");
-      });
-      icon.setAttribute("path", mdiChevronRight);
-    } else {
-      content.classList.add("open");
-      content.style.maxHeight = "none";
-      const height = "100%";
-      content.style.maxHeight = "0";
-      content.style.padding = "10px";
-
-      requestAnimationFrame(() => {
-        content.style.maxHeight = height;
-      });
-
-      icon.setAttribute("path", mdiChevronDown);
-    }
+  private handleRoomClicked(room: string): void {
+    this.clickedRoom = room;
+    this.requestUpdate();
   }
 
   static get styles(): CSSResultGroup {
@@ -2712,8 +2753,8 @@ class MapView extends LitElement {
             cursor: pointer;
 
             g#areas path:hover {
-              fill: #c0cfe06c;
-              opacity: 1;
+              /* fill: #c0cfe06c; */
+              opacity: 66% !important;
             }
           }
 
