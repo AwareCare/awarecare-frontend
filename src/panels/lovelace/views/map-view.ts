@@ -1,5 +1,6 @@
 /* eslint-disable lit/no-template-arrow */
 import { property, state } from "lit/decorators";
+import isNull from "lodash/isNull";
 import {
   mdiMagnifyMinus,
   mdiMagnifyPlus,
@@ -26,6 +27,8 @@ import "../../../components/ha-dialog";
 import "./map/right-navigation";
 
 import { sortPersonsByStatus } from "../../../util/sorting-utils";
+
+import { getPersonCountByStatus } from "../../../util/person-status-order-count-utils";
 
 import { HomeAssistant } from "../../../types";
 
@@ -62,6 +65,14 @@ const stateToColorMap = {
   conflict: "#d17cb3",
 };
 
+const commandIcon = {
+  hold: mdiDoorClosedLock,
+  secure: mdiSecurity,
+  lockdown: mdiLock,
+  evacuate: mdiExitRun,
+  shelter: mdiHomeRoof,
+};
+
 class MapView extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
 
@@ -85,25 +96,29 @@ class MapView extends LitElement {
 
   @state() private hasNotOkayRoom: boolean = false;
 
+  constructor() {
+    super();
+    this.roomAttributes = {};
+    this.roomsEntities = [];
+    this._initialize();
+  }
+
+  private async _initialize() {
+    await this._getStoredValue();
+    this.requestUpdate();
+  }
+
   updated(changedProperties: Map<string, unknown>) {
     super.updated(changedProperties);
 
     const roomAttributes = this.roomAttributes as Record<string, any>;
-
-    // Define the mapping for command icons
-    const commandIcon = {
-      hold: mdiDoorClosedLock,
-      secure: mdiSecurity,
-      lockdown: mdiLock,
-      evacuate: mdiExitRun,
-      shelter: mdiHomeRoof,
-    };
 
     Object.keys(roomAttributes).forEach((roomKey) => {
       const parsedValue = roomAttributes[roomKey];
 
       if (parsedValue && parsedValue.state) {
         const svgAttribute = parsedValue.attributes;
+        const personBadge = getPersonCountByStatus(svgAttribute.persons);
 
         const svgElement = this.shadowRoot?.querySelector(
           `#${svgAttribute.friendly_name}`
@@ -113,17 +128,24 @@ class MapView extends LitElement {
           `#status_${svgAttribute.friendly_name}`
         ) as SVGElement;
 
+        const commandGroup = svgElementStatus?.querySelector(
+          "#command"
+        ) as SVGGElement;
+
+        const personBadgeGroup = svgElementStatus?.querySelector(
+          "#counterBadge"
+        ) as SVGGElement;
+
+        const responseValue = svgAttribute.response;
+
         if (svgElement) {
           const fillColor =
             stateToColorMap[parsedValue.state as keyof typeof stateToColorMap];
 
-          if (
-            fillColor &&
-            !this.clickedRoomList.includes(svgAttribute.friendly_name)
-          ) {
+          if (fillColor) {
             svgElement.removeAttribute("class");
             svgElement.setAttribute("fill", fillColor);
-            svgElement.style.setProperty("opacity", "50%");
+            svgElement.style.setProperty("opacity", "33%");
             svgElement.classList.add("hasStatus");
           }
 
@@ -159,18 +181,31 @@ class MapView extends LitElement {
               if (pathElementIcon) {
                 pathElementIcon.setAttribute("style", "opacity: 1;");
               }
+
+              if (personBadgeGroup && !isNull(personBadge)) {
+                personBadgeGroup.setAttribute("style", "opacity: 1;");
+
+                const counterText = personBadgeGroup.querySelector(
+                  "#counter"
+                ) as SVGTextElement;
+
+                const counterBadgeColor = personBadgeGroup.querySelector(
+                  "#counterBadgeColor"
+                ) as SVGTextElement;
+
+                if (counterText && counterBadgeColor) {
+                  counterBadgeColor.setAttribute("fill", personBadge.color);
+                  counterText.textContent = personBadge.count.toString();
+                }
+              }
             }
           }
-
-          const commandGroup = svgElementStatus?.querySelector(
-            "#command"
-          ) as SVGGElement;
 
           if (commandGroup && svgAttribute.command) {
             commandGroup.setAttribute("style", "opacity: 1;");
 
             const commandValue = svgAttribute.command;
-            const responseValue = svgAttribute.response;
+
             const commandPath = commandIcon[commandValue];
 
             if (commandPath) {
@@ -180,6 +215,10 @@ class MapView extends LitElement {
 
               const badgeBgColor = svgElementStatus.querySelector(
                 ".s11"
+              ) as SVGGElement;
+
+              const hasResponseElem = svgElementStatus.querySelector(
+                ".hasResponse"
               ) as SVGGElement;
 
               if (dynamicCmdIcon) {
@@ -193,8 +232,32 @@ class MapView extends LitElement {
                 }
 
                 badgeBgColor.classList.add(responseValue);
+              } else if (responseValue && hasResponseElem) {
+                const classesToReplace = Array.from(
+                  hasResponseElem.classList
+                ).filter(
+                  (cls) => cls !== "hasResponse" && cls !== responseValue
+                );
+                if (classesToReplace.length > 0) {
+                  hasResponseElem.classList.remove(classesToReplace[0]);
+                }
+                hasResponseElem.classList.add(responseValue);
               }
             }
+          }
+
+          if (svgAttribute.response) {
+            const hasResponseElem = svgElementStatus.querySelector(
+              ".hasResponse"
+            ) as SVGGElement;
+
+            const classesToReplace = Array.from(
+              hasResponseElem.classList
+            ).filter((cls) => cls !== "hasResponse" && cls !== responseValue);
+            if (classesToReplace.length > 0) {
+              hasResponseElem.classList.remove(classesToReplace[0]);
+            }
+            hasResponseElem.classList.add(responseValue);
           }
         }
       }
@@ -207,7 +270,7 @@ class MapView extends LitElement {
     this._subscribeToStateChanges();
   }
 
-  private _getStoredValue() {
+  private async _getStoredValue() {
     this.roomsEntities = Object.keys(this.hass.states).filter((entityId) =>
       entityId.startsWith("room.room")
     );
@@ -224,7 +287,7 @@ class MapView extends LitElement {
       }
     });
 
-    Object.keys(personAssigned).forEach(async (roomKey) => {
+    const personPromises = Object.keys(personAssigned).map(async (roomKey) => {
       const roomId = `room.` + roomKey;
 
       if (this.roomAttributes[roomId]) {
@@ -237,11 +300,11 @@ class MapView extends LitElement {
           personStates.filter((personState) => !!personState)
         );
 
-        this.roomAttributes[roomId].persons = sortedPersonStates;
+        this.roomAttributes[roomId].attributes.persons = sortedPersonStates;
       }
     });
 
-    // this.checkRoomsForNotOkayStatus();
+    await Promise.all(personPromises);
   }
 
   private checkRoomsForNotOkayStatus() {
@@ -275,8 +338,10 @@ class MapView extends LitElement {
 
             if (updatedRoom && updatedRoom["+"].a) {
               const newCommand = updatedRoom["+"].a.command;
+              const newResponse = updatedRoom["+"].a.response;
 
               this.roomAttributes[roomKey].attributes.command = newCommand;
+              this.roomAttributes[roomKey].attributes.response = newResponse;
 
               this.requestUpdate();
             }
@@ -556,6 +621,7 @@ class MapView extends LitElement {
 		.s14 { fill: #ffffff }
 		.bg_status_color { opacity: 0 }
 		.hasResponse{stroke: #ffffff;stroke-miterlimit:10;stroke-width: 1.4}
+		.counterBadgeColor{stroke: #ffffff;stroke-miterlimit:10;stroke-width: 1.4}
 		.ok { fill: #1dd1a1 }
 		.help { fill: #ed5d5d}
 		.alert { fill: #ffcb2d}
@@ -2524,7 +2590,7 @@ class MapView extends LitElement {
 							<path d="${mdiHomeLock}" />
 					</svg>
 				</g>
-				<g id="counter" style="opacity: 0">
+				<g id="counterBadge" style="opacity: 0">
 					<path class="s13" d="m1030.7 357.9c-4.1 0-7.5-3.4-7.5-7.5 0-4.1 3.4-7.5 7.5-7.5 4.1 0 7.5 3.4 7.5 7.5 0 4.1-3.4 7.5-7.5 7.5z"/>
 					<path id="counter" class="s14" d="m1029.1 352.6h1.4v-3.7h-1.2v-0.9c0.7-0.1 1.1-0.3 1.6-0.6h1.1v5.2h1.2v1.2h-4v-1.2z"/>
 				</g>
@@ -2545,7 +2611,7 @@ class MapView extends LitElement {
 							<path d="${mdiHomeLock}" />
 					</svg>
 				</g>
-				<g id="counter" style="opacity: 0">
+				<g id="counterBadge" style="opacity: 0">
 					<path class="s13" d="m976.7 237.9c-4.1 0-7.5-3.4-7.5-7.5 0-4.1 3.4-7.5 7.5-7.5 4.1 0 7.5 3.4 7.5 7.5 0 4.1-3.4 7.5-7.5 7.5z"/>
 					<path id="counter" class="s14" d="m975.1 232.6h1.4v-3.7h-1.2v-0.9c0.7-0.1 1.1-0.3 1.6-0.6h1.1v5.2h1.2v1.2h-4v-1.2z"/>
 				</g>
@@ -2566,7 +2632,7 @@ class MapView extends LitElement {
 							<path d="${mdiHomeLock}" />
 					</svg>
 				</g>
-				<g id="counter" style="opacity: 0">
+				<g id="counterBadge" style="opacity: 0">
 					<path class="s13" d="m896.7 237.9c-4.1 0-7.5-3.4-7.5-7.5 0-4.1 3.4-7.5 7.5-7.5 4.1 0 7.5 3.4 7.5 7.5 0 4.1-3.4 7.5-7.5 7.5z"/>
 					<path id="counter" class="s14" d="m895.1 232.6h1.4v-3.7h-1.2v-0.9c0.7-0.1 1.1-0.3 1.6-0.6h1.1v5.2h1.2v1.2h-4v-1.2z"/>
 				</g>
@@ -2587,7 +2653,7 @@ class MapView extends LitElement {
 							<path d="${mdiHomeLock}" />
 					</svg>
 				</g>
-				<g id="counter" style="opacity: 0">
+				<g id="counterBadge" style="opacity: 0">
 					<path class="s13" d="m751.7 357.9c-4.1 0-7.5-3.4-7.5-7.5 0-4.1 3.4-7.5 7.5-7.5 4.1 0 7.5 3.4 7.5 7.5 0 4.1-3.4 7.5-7.5 7.5z"/>
 					<path id="counter" class="s14" d="m750.1 352.6h1.4v-3.7h-1.2v-0.9c0.7-0.1 1.1-0.3 1.6-0.6h1.1v5.2h1.2v1.2h-4v-1.2z"/>
 				</g>
@@ -2608,7 +2674,7 @@ class MapView extends LitElement {
 							<path d="${mdiHomeLock}" />
 					</svg>
 				</g>
-				<g id="counter" style="opacity: 0">
+				<g id="counterBadge" style="opacity: 0">
 					<path class="s13" d="m810.7 237.9c-4.1 0-7.5-3.4-7.5-7.5 0-4.1 3.4-7.5 7.5-7.5 4.1 0 7.5 3.4 7.5 7.5 0 4.1-3.4 7.5-7.5 7.5z"/>
 					<path id="counter" class="s14" d="m809.1 232.6h1.4v-3.7h-1.2v-0.9c0.7-0.1 1.1-0.3 1.6-0.6h1.1v5.2h1.2v1.2h-4v-1.2z"/>
 				</g>
@@ -2629,9 +2695,9 @@ class MapView extends LitElement {
 							<path d="${mdiHomeLock}" />
 					</svg>
 				</g>
-				<g id="counter" style="opacity: 0">
-					<path class="s13" d="m730.7 237.9c-4.1 0-7.5-3.4-7.5-7.5 0-4.1 3.4-7.5 7.5-7.5 4.1 0 7.5 3.4 7.5 7.5 0 4.1-3.4 7.5-7.5 7.5z"/>
-					<path id="counter" class="s14" d="m729.1 232.6h1.4v-3.7h-1.2v-0.9c0.7-0.1 1.1-0.3 1.6-0.6h1.1v5.2h1.2v1.2h-4v-1.2z"/>
+				<g id="counterBadge" style="opacity: 0">
+					<path id="counterBadgeColor" class="counterBadgeColor" d="m730.7 237.9c-4.1 0-7.5-3.4-7.5-7.5 0-4.1 3.4-7.5 7.5-7.5 4.1 0 7.5 3.4 7.5 7.5 0 4.1-3.4 7.5-7.5 7.5z"/>
+					<text id="counter" class="s14" x="731" y="231.5" font-size="11" text-anchor="middle" alignment-baseline="middle">1</text>
 				</g>
 			</g>
 		</g>
@@ -2669,14 +2735,17 @@ class MapView extends LitElement {
   }
 
   private _changeSectionColor(sectionElement: SVGElement, sectionId: string) {
-    sectionElement.setAttribute("style", "opacity: 1;");
+    sectionElement.setAttribute("style", "opacity: 66%;");
+    sectionElement.classList.add("selected");
 
     const index = this.clickedRoomList.indexOf(sectionId);
+
     if (index > -1) {
       this.clickedRoomList.splice(index, 1);
       if (sectionElement.classList.contains("hasStatus")) {
-        sectionElement.setAttribute("style", "opacity: 50%;");
+        sectionElement.setAttribute("style", "opacity: 80%;");
       } else {
+        sectionElement.classList.remove("selected");
         sectionElement.setAttribute("style", "opacity: 0;");
       }
     } else {
@@ -2699,7 +2768,6 @@ class MapView extends LitElement {
 
   private handleRoomClicked(room: string): void {
     this.clickedRoom = room;
-    this.requestUpdate();
   }
 
   static get styles(): CSSResultGroup {
@@ -2753,8 +2821,11 @@ class MapView extends LitElement {
             cursor: pointer;
 
             g#areas path:hover {
-              /* fill: #c0cfe06c; */
               opacity: 66% !important;
+            }
+
+            g#areas path.selected:hover {
+              opacity: 1 !important;
             }
           }
 
