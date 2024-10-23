@@ -657,6 +657,9 @@ class MapRightNavigation extends LitElement {
       .accordion .hide {
         display: none;
       }
+      .accordion .show {
+        display: block;
+      }
     `;
   }
 }
