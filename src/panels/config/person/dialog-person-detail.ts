@@ -84,7 +84,7 @@ class DialogPersonDetail extends LitElement {
       this._userId = this._params.entry.user_id || undefined;
       this._role = this._params.entry.role || "";
       this._status = this._params.entry.status || "";
-      this._context = this._params.entry.status || "";
+      this._context = this._params.entry.context || "";
       this._deviceTrackers = this._params.entry.device_trackers || [];
       this._picture = this._params.entry.picture || null;
       this._user = this._userId
@@ -192,7 +192,7 @@ class DialogPersonDetail extends LitElement {
               dialogInitialFocus
               .value=${this._context}
               @input=${this._contextChanged}
-              label=${this.hass!.localize("ui.panel.config.person.detail.name")}
+              label="Context"
             ></ha-textfield>
 
             <ha-formfield
