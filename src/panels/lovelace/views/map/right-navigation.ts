@@ -413,262 +413,251 @@ class MapRightNavigation extends LitElement {
 
   static get styles(): CSSResultGroup {
     return css`
-    .accordion {
-      margin-bottom: 24px;
-
-      .accordion-item {
+      .accordion {
+        margin-bottom: 24px;
+      }
+      .accordion .accordion-item {
         border-bottom: 1px solid #415862;
         --status-color: #656565;
-
-        &.weapon,
-        .wounded {
-          --status-color: #ea4849;
-        }
-        &.fire {
-          --status-color: #faa84f;
-        }
-        &.medical {
-          --status-color: #6fa1d6;
-        }
-        &.weather {
-          --status-color: #9689c1;
-        }
-        &.suspicious {
-          --status-color: #00abac;
-        }
-        &.conflict {
-          --status-color: #d17cb3;
-        }
-        &.ok {
-          --status-color: #1dd1a1;
-        }
-        .default {
-          --status-color: #e1e1e1;
-        }
-
-        .accordion-header {
-          background-color: #212121;
-          padding: 10px;
-          cursor: pointer;
-          font-weight: bold;
-          border-left: 8px solid var(--status-color);
-          justify-content: space-between;
-          align-items: center;
-          display: flex;
-
-          .accordion-icon {
-            background: var(--status-color);
-            border-radius: 50%;
-            padding: 2px 6px;
-
-            .students-count {
-              font-size: 12px;
-              color: #606060;
-              font-weight: normal;
-            }
-          }
-
-          .section-status {
-            margin-left: 12px;
-            position: relative;
-            display: inline-flex;
-            align-items: center;
-            background: var(--status-color);
-            padding: 4px 6px;
-            border-radius: 50%;
-
-            .badge {
-              position: absolute;
-              bottom: -8px;
-              border: 1px solid white;
-              border-radius: 50%;
-              width: 16px;
-              height: 16px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-size: 9px;
-            }
-
-            .counter {
-              left: -8px;
-              color: white;
-
-              &.wounded {
-                background: #ea4849;
-              }
-              &.medical {
-                background: #54a0ff;
-              }
-              &.disciplinary {
-                background: #d17cb3;
-              }
-              &.unaccounted {
-                background: #00abac;
-              }
-              &.absent {
-                background: #faa84f;
-              }
-
-            }
-
-            .command {
-              right: -8px;
-              background: #feca57;
-              color: #ffffff;
-              border-color: #ffffff;
-            }
-          }
-        }
-
-        .action-button {
-          width: 100%;
-          background: #feca57;
-          border-radius: 8px;
-
-          .action-button-icon {
-            color: #0a0a0a;
-            padding: 8px;
-          }
-        }
-
-        &:last-child {
-          border-bottom: none;
-        }
       }
-
-      .accordion-content {
+      .accordion .accordion-item.weapon,
+      .accordion .accordion-item .wounded {
+        --status-color: #ea4849;
+      }
+      .accordion .accordion-item.fire {
+        --status-color: #faa84f;
+      }
+      .accordion .accordion-item.medical {
+        --status-color: #6fa1d6;
+      }
+      .accordion .accordion-item.weather {
+        --status-color: #9689c1;
+      }
+      .accordion .accordion-item.suspicious {
+        --status-color: #00abac;
+      }
+      .accordion .accordion-item.conflict {
+        --status-color: #d17cb3;
+      }
+      .accordion .accordion-item.ok {
+        --status-color: #1dd1a1;
+      }
+      .accordion .accordion-item .default {
+        --status-color: #e1e1e1;
+      }
+      .accordion .accordion-item .accordion-header {
+        background-color: #212121;
+        padding: 10px;
+        cursor: pointer;
+        font-weight: bold;
+        border-left: 8px solid var(--status-color);
+        justify-content: space-between;
+        align-items: center;
+        display: flex;
+      }
+      .accordion .accordion-item .accordion-header .accordion-icon {
+        background: var(--status-color);
+        border-radius: 50%;
+        padding: 2px 6px;
+      }
+      .accordion
+        .accordion-item
+        .accordion-header
+        .accordion-icon
+        .students-count {
+        font-size: 12px;
+        color: #606060;
+        font-weight: normal;
+      }
+      .accordion .accordion-item .accordion-header .section-status {
+        margin-left: 12px;
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        background: var(--status-color);
+        padding: 4px 6px;
+        border-radius: 50%;
+      }
+      .accordion .accordion-item .accordion-header .section-status .badge {
+        position: absolute;
+        bottom: -8px;
+        border: 1px solid white;
+        border-radius: 50%;
+        width: 16px;
+        height: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 9px;
+      }
+      .accordion .accordion-item .accordion-header .section-status .counter {
+        left: -8px;
+        color: white;
+      }
+      .accordion
+        .accordion-item
+        .accordion-header
+        .section-status
+        .counter.wounded {
+        background: #ea4849;
+      }
+      .accordion
+        .accordion-item
+        .accordion-header
+        .section-status
+        .counter.medical {
+        background: #54a0ff;
+      }
+      .accordion
+        .accordion-item
+        .accordion-header
+        .section-status
+        .counter.disciplinary {
+        background: #d17cb3;
+      }
+      .accordion
+        .accordion-item
+        .accordion-header
+        .section-status
+        .counter.unaccounted {
+        background: #00abac;
+      }
+      .accordion
+        .accordion-item
+        .accordion-header
+        .section-status
+        .counter.absent {
+        background: #faa84f;
+      }
+      .accordion .accordion-item .accordion-header .section-status .command {
+        right: -8px;
+        background: #feca57;
+        color: #fff;
+        border-color: #fff;
+      }
+      .accordion .accordion-item .action-button {
+        width: 100%;
+        background: #feca57;
+        border-radius: 8px;
+      }
+      .accordion .accordion-item .action-button .action-button-icon {
+        color: #0a0a0a;
+        padding: 8px;
+      }
+      .accordion .accordion-item:last-child {
+        border-bottom: none;
+      }
+      .accordion .accordion-content {
         max-height: 0;
         overflow: hidden;
         padding: 0 10px;
         background-color: #212121;
         border-top: 1px solid #415862;
-
-        .threat-info-item {
-          display: flex;
-          flex-direction: column;
-          margin: 4px 0;
-          border-top: 1px solid #415862;
-          padding: 4px 0;
-
-          &:last-child {
-            border-bottom: none;
-          }
-
-          .message {
-            margin-bottom: 8px;
-          }
-
-          .time {
-            color: #a3a3a3;
-            font-size: 10px;
-          }
-        }
-
-        .student-list {
-          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-          cursor: pointer;
-        }
-        .student-item {
-          display: flex;
-          align-items: center;
-          margin-bottom: 15px;
-          transition: background-color 0.3s ease;
-          border-bottom: 1px solid #606060;
-          color: var(--status-color);
-
-          .student-icon {
-            color: var(--status-color);
-          }
-        }
-        .student-item:hover {
-          background-color: #2b2b2b;
-        }
-        .student-icon {
-          width: 40px;
-          height: 40px;
-          border-radius: 50%;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          font-size: 14px;
-          margin-right: 15px;
-
-          &.medical {
-            color: #54a0ff;
-          }
-
-          &.ok {
-            color: #1dd1a1;Av
-          }
-        }
-        .student-name {
-          font-size: 14px;
-
-          .type {
-            font-size: 10px;
-            color: gray;
-          }
-        }
       }
-
-      .accordion-content.open {
-        max-height: 400px; /* Set a maximum height that accommodates the content */
+      .accordion .accordion-content .threat-info-item {
+        display: flex;
+        flex-direction: column;
+        margin: 4px 0;
+        border-top: 1px solid #415862;
+        padding: 4px 0;
+      }
+      .accordion .accordion-content .threat-info-item:last-child {
+        border-bottom: none;
+      }
+      .accordion .accordion-content .threat-info-item .message {
+        margin-bottom: 8px;
+      }
+      .accordion .accordion-content .threat-info-item .time {
+        color: #a3a3a3;
+        font-size: 10px;
+      }
+      .accordion .accordion-content .student-list {
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        cursor: pointer;
+      }
+      .accordion .accordion-content .student-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+        transition: background-color 0.3s ease;
+        border-bottom: 1px solid #606060;
+        color: var(--status-color);
+      }
+      .accordion .accordion-content .student-item .student-icon {
+        color: var(--status-color);
+      }
+      .accordion .accordion-content .student-item:hover {
+        background-color: #2b2b2b;
+      }
+      .accordion .accordion-content .student-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 14px;
+        margin-right: 15px;
+      }
+      .accordion .accordion-content .student-icon.medical {
+        color: #54a0ff;
+      }
+      .accordion .accordion-content .student-icon.ok {
+        color: #1dd1a1;
+      }
+      .accordion .accordion-content .student-name {
+        font-size: 14px;
+      }
+      .accordion .accordion-content .student-name .type {
+        font-size: 10px;
+        color: gray;
+      }
+      .accordion .accordion-content.open {
+        max-height: 400px;
+        /* Set a maximum height that accommodates the content */
         padding: 10px;
       }
-
-      &.nested {
-        .accordion-item {
-          border: 1px solid #606060;
-          border-radius: 8px;
-          margin-bottom: 8px;
-
-          &.threat {
-            border-color: #ea4849;
-
-            .section-name {
-              color: #ea4849;
-              font-size: 12px;
-            }
-          }
-
-          .accordion-header {
-            border-left: none;
-            border-radius: 8px;
-
-            .accordion-icon {
-              background: none;
-            }
-          }
-
-          .accordion-content {
-            border-top: none;
-            border-radius: 8px;
-            padding-top: 0 !important;
-          }
-        }
+      .accordion.nested .accordion-item {
+        border: 1px solid #606060;
+        border-radius: 8px;
+        margin-bottom: 8px;
       }
-
-      .bottom-action{
-          margin-top: 12px;
-
-          .action-button {
-              width: 100%;
-              background: #feca57;
-              padding: 8px 0;
-              border-radius: 8px;
-
-              p {
-                color: #0a0a0a;
-                font-size: 12px;
-              }
-          }
-        }
-
-        .hide {
-          display: none;
-        }
-    }`;
+      .accordion.nested .accordion-item.threat {
+        border-color: #ea4849;
+      }
+      .accordion.nested .accordion-item.threat .section-name {
+        color: #ea4849;
+        font-size: 12px;
+      }
+      .accordion.nested .accordion-item .accordion-header {
+        border-left: none;
+        border-radius: 8px;
+      }
+      .accordion.nested .accordion-item .accordion-header .accordion-icon {
+        background: none;
+      }
+      .accordion.nested .accordion-item .accordion-content {
+        border-top: none;
+        border-radius: 8px;
+        padding-top: 0 !important;
+      }
+      .accordion .bottom-action {
+        margin-top: 12px;
+      }
+      .accordion .bottom-action .action-button {
+        width: 100%;
+        background: #feca57;
+        padding: 8px 0;
+        border-radius: 8px;
+      }
+      .accordion .bottom-action .action-button p {
+        color: #0a0a0a;
+        font-size: 12px;
+      }
+      .accordion .hide {
+        display: none;
+      }
+    `;
   }
 }
 

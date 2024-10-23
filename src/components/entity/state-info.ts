@@ -107,13 +107,12 @@ class StateInfo extends LitElement {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-
-        .role {
-          color: gray !important;
-          text-transform: uppercase !important;
-          font-size: 11px;
-          font-weight: bold;
-        }
+      }
+      .name .role {
+        color: gray !important;
+        text-transform: uppercase !important;
+        font-size: 11px;
+        font-weight: bold;
       }
 
       .name[inDialog],

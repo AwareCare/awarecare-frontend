@@ -345,69 +345,57 @@ export class HuiEntityCard extends LitElement implements LovelaceCard {
           cursor: pointer;
           outline: none;
         }
-
         .custom-card {
           background-color: #ffcf68;
           color: #222021;
         }
-
         .container-actions {
           margin: 12px 0 24px 0;
         }
-
         .custom-btn {
           justify-content: start !important;
           padding: 24px 32px 0 !important;
           align-items: center;
-
-          p {
-            margin: 0;
-          }
-
-          ha-attribute-value {
-            text-transform: uppercase;
-            font-size: 22px;
-            font-weight: bold;
-          }
         }
-
+        .custom-btn p {
+          margin: 0;
+        }
+        .custom-btn ha-attribute-value {
+          text-transform: uppercase;
+          font-size: 22px;
+          font-weight: bold;
+        }
         .custom-btn-actions {
           padding: 6px 32px !important;
           display: flex;
           justify-content: space-between;
-
-          .btn-action {
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 16px;
-            border-radius: 8px;
-            width: 100%;
-            margin: 0 4px;
-            height: 56px;
-            background: #212222;
-            border-color: #454545;
-
-            &.active {
-              &#ok {
-                background: #1dd1a1;
-              }
-              &#help {
-                background: #ed5d5d;
-              }
-              &#alert {
-                background: #ffcb2d;
-              }
-              &#medical {
-                background: #6fa1d6;
-              }
-            }
-
-            &:hover {
-              background-color: #2e2e2e !important;
-            }
-          }
         }
-
+        .custom-btn-actions .btn-action {
+          cursor: pointer;
+          font-weight: bold;
+          font-size: 16px;
+          border-radius: 8px;
+          width: 100%;
+          margin: 0 4px;
+          height: 56px;
+          background: #212222;
+          border-color: #454545;
+        }
+        .custom-btn-actions .btn-action.active#ok {
+          background: #1dd1a1;
+        }
+        .custom-btn-actions .btn-action.active#help {
+          background: #ed5d5d;
+        }
+        .custom-btn-actions .btn-action.active#alert {
+          background: #ffcb2d;
+        }
+        .custom-btn-actions .btn-action.active#medical {
+          background: #6fa1d6;
+        }
+        .custom-btn-actions .btn-action:hover {
+          background-color: #2e2e2e !important;
+        }
         .state-icon {
           background-color: red;
           border-radius: 50%;
@@ -415,13 +403,11 @@ export class HuiEntityCard extends LitElement implements LovelaceCard {
           margin-right: 12px;
           color: white;
         }
-
         .header {
           display: flex;
           padding: 8px 16px 0;
           justify-content: space-between;
         }
-
         .name {
           color: var(--secondary-text-color);
           line-height: 40px;
@@ -431,13 +417,11 @@ export class HuiEntityCard extends LitElement implements LovelaceCard {
           white-space: nowrap;
           text-overflow: ellipsis;
         }
-
         .icon {
           color: var(--paper-item-icon-color, #44739e);
           --state-inactive-color: var(--paper-item-icon-color, #44739e);
           line-height: 40px;
         }
-
         .info {
           padding: 0px 16px 16px;
           margin-top: -4px;
@@ -446,14 +430,12 @@ export class HuiEntityCard extends LitElement implements LovelaceCard {
           text-overflow: ellipsis;
           line-height: 28px;
         }
-
         .value {
           font-size: 28px;
           margin-right: 4px;
           margin-inline-end: 4px;
           margin-inline-start: initial;
         }
-
         .measurement {
           font-size: 18px;
           color: var(--secondary-text-color);

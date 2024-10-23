@@ -207,161 +207,186 @@ class ClassroomHeaderSection extends LitElement {
       .static-section {
         display: flex;
         padding: var(--row-gap) var(--column-gap);
-
-        .grid {
-          border-radius: 8px 8px 0 0;
-          text-align: center;
-        }
-
-        .row {
-          display: flex;
-          justify-content: space-between;
-          margin: 16px;
-        }
-
-        .card-static {
-          border-radius: var(--ha-card-border-radius, 12px);
-          box-shadow: var(--ha-card-box-shadow);
-          border: 1px solid #6b8488;
-          margin: 8px;
-          padding: 16px;
-
-          &.advisor-section {
-            width: 30%;
-            max-width: 800px;
-            display: flex;
-            align-items: center;
-
-            .section-info {
-              margin: 4px;
-            }
-
-            p {
-              margin: 0 0 0 4px;
-
-              &.department {
-                font-size: 12px;
-                color: var(--secondary-text-color);
-              }
-            }
-
-            .avatar-section {
-              display: flex;
-              align-items: center;
-
-              .avatar {
-                width: 120px;
-                height: 120px;
-                background-image: url("http://localhost:8123/api/image/serve/69637b27fc0c59baf0c74141c6acf00f/512x512");
-                background-size: cover;
-                background-position: center;
-                border-radius: 50%;
-                margin-right: 16px;
-              }
-
-              .text-description {
-                font-size: 16px;
-                color: var(--primary-text-color);
-              }
-            }
-          }
-
-          &.quick-action-buttons {
-            width: 70%;
-            padding: 0;
-            border-top: 12px solid #ff3d19;
-
-            .header-section {
-              margin: 0;
-              p {
-                padding: 8px;
-                margin: 0;
-              }
-            }
-
-            .status-button {
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              justify-content: center;
-              height: 80px;
-              flex: 1 1 calc(33.333% - 8px);
-              margin-right: 8px;
-              border: 1px solid #e1e1e11f;
-              color: white;
-              border-radius: 8px;
-              transition:
-                background-color 0.3s,
-                border-color 0.3s;
-              background-color: #212222;
-              width: 140px;
-              cursor: pointer;
-
-              .content-wrapper {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                color: white;
-
-                &.weapon {
-                  color: #ed5d5d;
-                }
-                &.fire {
-                  color: #faa84f;
-                }
-                &.medical {
-                  color: #6fa1d6;
-                }
-                &.weather {
-                  color: #9689c1;
-                }
-                &.suspicious {
-                  color: #00abac;
-                }
-                &.conflict {
-                  color: #d17cb3;
-                }
-              }
-
-              &:hover {
-                background-color: #2e2e2e;
-
-                &.dark {
-                  background-color: #212222;
-
-                  .content-wrapper {
-                    &.weapon {
-                      color: #ed5d5d;
-                    }
-                    &.fire {
-                      color: #faa84f;
-                    }
-                    &.medical {
-                      color: #6fa1d6;
-                    }
-                    &.weather {
-                      color: #9689c1;
-                    }
-                    &.suspicious {
-                      color: #00abac;
-                    }
-                    &.conflict {
-                      color: #d17cb3;
-                    }
-                  }
-                }
-              }
-
-              &.dark {
-                background-color: #212222;
-
-                .content-wrapper {
-                  color: #3d4141;
-                }
-              }
-            }
-          }
-        }
+      }
+      .static-section .grid {
+        border-radius: 8px 8px 0 0;
+        text-align: center;
+      }
+      .static-section .row {
+        display: flex;
+        justify-content: space-between;
+        margin: 16px;
+      }
+      .static-section .card-static {
+        border-radius: var(--ha-card-border-radius, 12px);
+        box-shadow: var(--ha-card-box-shadow);
+        border: 1px solid #6b8488;
+        margin: 8px;
+        padding: 16px;
+      }
+      .static-section .card-static.advisor-section {
+        width: 30%;
+        max-width: 800px;
+        display: flex;
+        align-items: center;
+      }
+      .static-section .card-static.advisor-section .section-info {
+        margin: 4px;
+      }
+      .static-section .card-static.advisor-section p {
+        margin: 0 0 0 4px;
+      }
+      .static-section .card-static.advisor-section p.department {
+        font-size: 12px;
+        color: var(--secondary-text-color);
+      }
+      .static-section .card-static.advisor-section .avatar-section {
+        display: flex;
+        align-items: center;
+      }
+      .static-section .card-static.advisor-section .avatar-section .avatar {
+        width: 120px;
+        height: 120px;
+        background-image: url("http://localhost:8123/api/image/serve/69637b27fc0c59baf0c74141c6acf00f/512x512");
+        background-size: cover;
+        background-position: center;
+        border-radius: 50%;
+        margin-right: 16px;
+      }
+      .static-section
+        .card-static.advisor-section
+        .avatar-section
+        .text-description {
+        font-size: 16px;
+        color: var(--primary-text-color);
+      }
+      .static-section .card-static.quick-action-buttons {
+        width: 70%;
+        padding: 0;
+        border-top: 12px solid #ff3d19;
+      }
+      .static-section .card-static.quick-action-buttons .header-section {
+        margin: 0;
+      }
+      .static-section .card-static.quick-action-buttons .header-section p {
+        padding: 8px;
+        margin: 0;
+      }
+      .static-section .card-static.quick-action-buttons .status-button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 80px;
+        flex: 1 1 calc(33.333% - 8px);
+        margin-right: 8px;
+        border: 1px solid #e1e1e1 1f;
+        color: white;
+        border-radius: 8px;
+        transition:
+          background-color 0.3s,
+          border-color 0.3s;
+        background-color: #212222;
+        width: 140px;
+        cursor: pointer;
+      }
+      .static-section
+        .card-static.quick-action-buttons
+        .status-button
+        .content-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        color: white;
+      }
+      .static-section
+        .card-static.quick-action-buttons
+        .status-button
+        .content-wrapper.weapon {
+        color: #ed5d5d;
+      }
+      .static-section
+        .card-static.quick-action-buttons
+        .status-button
+        .content-wrapper.fire {
+        color: #faa84f;
+      }
+      .static-section
+        .card-static.quick-action-buttons
+        .status-button
+        .content-wrapper.medical {
+        color: #6fa1d6;
+      }
+      .static-section
+        .card-static.quick-action-buttons
+        .status-button
+        .content-wrapper.weather {
+        color: #9689c1;
+      }
+      .static-section
+        .card-static.quick-action-buttons
+        .status-button
+        .content-wrapper.suspicious {
+        color: #00abac;
+      }
+      .static-section
+        .card-static.quick-action-buttons
+        .status-button
+        .content-wrapper.conflict {
+        color: #d17cb3;
+      }
+      .static-section .card-static.quick-action-buttons .status-button:hover {
+        background-color: #2e2e2e;
+      }
+      .static-section
+        .card-static.quick-action-buttons
+        .status-button:hover.dark {
+        background-color: #212222;
+      }
+      .static-section
+        .card-static.quick-action-buttons
+        .status-button:hover.dark
+        .content-wrapper.weapon {
+        color: #ed5d5d;
+      }
+      .static-section
+        .card-static.quick-action-buttons
+        .status-button:hover.dark
+        .content-wrapper.fire {
+        color: #faa84f;
+      }
+      .static-section
+        .card-static.quick-action-buttons
+        .status-button:hover.dark
+        .content-wrapper.medical {
+        color: #6fa1d6;
+      }
+      .static-section
+        .card-static.quick-action-buttons
+        .status-button:hover.dark
+        .content-wrapper.weather {
+        color: #9689c1;
+      }
+      .static-section
+        .card-static.quick-action-buttons
+        .status-button:hover.dark
+        .content-wrapper.suspicious {
+        color: #00abac;
+      }
+      .static-section
+        .card-static.quick-action-buttons
+        .status-button:hover.dark
+        .content-wrapper.conflict {
+        color: #d17cb3;
+      }
+      .static-section .card-static.quick-action-buttons .status-button.dark {
+        background-color: #212222;
+      }
+      .static-section
+        .card-static.quick-action-buttons
+        .status-button.dark
+        .content-wrapper {
+        color: #3d4141;
       }
     `;
   }

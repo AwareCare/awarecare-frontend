@@ -195,39 +195,36 @@ class DialogCommand extends LitElement {
         display: inline-flex;
         justify-content: space-between;
         margin: 16px;
-
-        .content-wrapper {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-        }
-
-        .command-button {
-          cursor: pointer;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          height: 80px;
-          background-color: #212222;
-          color: #dfdfdf;
-          flex: 1 1 calc(33.333% - 8px);
-          margin-right: 8px;
-          border: 1px solid #e1e1e11f;
-          border-radius: 8px;
-          width: 154px;
-          transition:
-            background-color 0.3s,
-            border-color 0.3s;
-        }
-        .command-button:last-child {
-          margin-right: 0;
-        }
-        .command-button:hover {
-          background-color: #f0f0f08c;
-        }
       }
-
+      .row .content-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .row .command-button {
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 80px;
+        background-color: #212222;
+        color: #dfdfdf;
+        flex: 1 1 calc(33.333% - 8px);
+        margin-right: 8px;
+        border: 1px solid #e1e1e1 1f;
+        border-radius: 8px;
+        width: 154px;
+        transition:
+          background-color 0.3s,
+          border-color 0.3s;
+      }
+      .row .command-button:last-child {
+        margin-right: 0;
+      }
+      .row .command-button:hover {
+        background-color: #f0f0f0 8c;
+      }
       .roomName {
         font-weight: bold;
         text-transform: uppercase;

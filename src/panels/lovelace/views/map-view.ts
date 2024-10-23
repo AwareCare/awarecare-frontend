@@ -2667,73 +2667,66 @@ class MapView extends LitElement {
         display: flex;
         justify-content: space-between;
         margin: 16px;
-
-        .content-wrapper {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-        }
-
-        .command-button {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          height: 80px;
-          flex: 1 1 calc(33.333% - 8px);
-          margin-right: 8px;
-          border: 1px solid #e1e1e11f;
-          border-radius: 8px;
-          min-width: 120px;
-          transition:
-            background-color 0.3s,
-            border-color 0.3s;
-        }
-        .command-button:last-child {
-          margin-right: 0;
-        }
-        .command-button:hover {
-          background-color: #f0f0f08c;
-        }
+      }
+      .row .content-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .row .command-button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 80px;
+        flex: 1 1 calc(33.333% - 8px);
+        margin-right: 8px;
+        border: 1px solid #e1e1e1 1f;
+        border-radius: 8px;
+        min-width: 120px;
+        transition:
+          background-color 0.3s,
+          border-color 0.3s;
+      }
+      .row .command-button:last-child {
+        margin-right: 0;
+      }
+      .row .command-button:hover {
+        background-color: #f0f0f0 8c;
       }
 
       .container {
         display: flex;
         height: 100%;
-
-        .svg-map {
-          background: #383838;
-          margin: 12px;
-          border-radius: 8px;
-          width: 100%;
-          padding: 10px;
-
-          svg {
-            cursor: pointer;
-
-            g#areas path:hover {
-              fill: #c0cfe06c;
-              opacity: 1;
-            }
-          }
-
-          .map-name {
-            display: flex;
-            margin: 16px;
-            color: #66cccc;
-          }
-        }
-
-        .right-menu {
-          width: 25%;
-          padding: 10px;
-          background: #383838;
-          margin: 12px;
-          border-radius: 8px;
-          display: none;
-          flex-direction: column;
-          height: 100%;
-        }
+      }
+      .container .svg-map {
+        background: #383838;
+        margin: 12px;
+        border-radius: 8px;
+        width: 100%;
+        padding: 10px;
+      }
+      .container .svg-map svg {
+        cursor: pointer;
+      }
+      .container .svg-map svg g#areas path:hover {
+        fill: #c0cfe0 6c;
+        opacity: 1;
+      }
+      .container .svg-map .map-name {
+        display: flex;
+        margin: 16px;
+        color: #6cc;
+      }
+      .container .right-menu {
+        width: 25%;
+        padding: 10px;
+        background: #383838;
+        margin: 12px;
+        border-radius: 8px;
+        display: none;
+        flex-direction: column;
+        height: 100%;
       }
 
       .header-map-section {
@@ -2746,33 +2739,30 @@ class MapView extends LitElement {
         font-weight: 400;
         box-sizing: border-box;
         border: 1px solid #3f403f;
-
-        .action-button-icon {
-          white-space: nowrap;
-          display: flex;
-          align-items: center;
-          color: #66cccc;
-        }
-
-        .right-navigation {
-          .action-button {
-            background: #feca57;
-            border-radius: 8px;
-          }
-
-          .action-button-icon {
-            color: #000000;
-            margin: 0;
-
-            .button-text {
-              margin: 0;
-
-              .icon {
-                margin-right: 4px;
-              }
-            }
-          }
-        }
+      }
+      .header-map-section .action-button-icon {
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        color: #6cc;
+      }
+      .header-map-section .right-navigation .action-button {
+        background: #feca57;
+        border-radius: 8px;
+      }
+      .header-map-section .right-navigation .action-button-icon {
+        color: #000;
+        margin: 0;
+      }
+      .header-map-section .right-navigation .action-button-icon .button-text {
+        margin: 0;
+      }
+      .header-map-section
+        .right-navigation
+        .action-button-icon
+        .button-text
+        .icon {
+        margin-right: 4px;
       }
     `;
   }
