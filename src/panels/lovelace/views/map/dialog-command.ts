@@ -21,7 +21,7 @@ class DialogCommand extends LitElement {
 
   @state() private commandHeaderMessage: string = "";
 
-  @state() private isMultipleRooms: string = "";
+  @state() private isMultipleRooms: boolean = false;
 
   firstUpdated() {}
 
@@ -69,6 +69,7 @@ class DialogCommand extends LitElement {
       const roomStateAttributes = {
         ...roomState.attributes,
         command: cmdValue,
+        response: "",
       };
 
       promises.push(
@@ -93,6 +94,7 @@ class DialogCommand extends LitElement {
         const roomStateAttributes = {
           ...roomState.attributes,
           command: cmdValue,
+          response: "",
         };
 
         promises.push(

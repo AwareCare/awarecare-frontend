@@ -1,4 +1,3 @@
-import isEmpty from "lodash/isEmpty";
 import has from "lodash/has";
 
 import { html, LitElement, css, CSSResultGroup } from "lit";
@@ -25,6 +24,7 @@ import { stateIconMap } from "../../../../common/entity/state-icon-map";
 
 import "./dialog-command";
 import { classroomCommandMap } from "../../../../classroom-command-map";
+import { classroomStatusMap } from "../../../../classroom-status-map";
 
 class MapRightNavigation extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
@@ -111,7 +111,7 @@ class MapRightNavigation extends LitElement {
           if (entity.state !== "0") {
             const roomId = entityId.replace("room.", "");
             if (!this.selectedRooms.includes(roomId)) {
-              this.selectedRooms.push(roomId);
+              // this.selectedRooms.push(roomId);
             }
           }
         } catch (err) {
@@ -194,15 +194,12 @@ class MapRightNavigation extends LitElement {
 
           const personBadge = getPersonCountByStatus(attributes.persons);
           const response = roomDatum.state;
-          const hide =
-            isEmpty(response) || response === "0" || response === " "
-              ? "hide"
-              : "";
 
           const stateDetails = classroomCommandMap[attributes.command];
+          const responseColor = classroomStatusMap[attributes.response];
 
           return html` <div
-            class="accordion-item ${response} ${attributes.friendly_name} ${hide}"
+            class="accordion-item ${response} ${attributes.friendly_name} hide"
             key=${entityId}
           >
             <div class="accordion-header">
@@ -210,25 +207,27 @@ class MapRightNavigation extends LitElement {
                 ${(attributes.friendly_name || "")
                   .replace("_", " ")
                   .toUpperCase()}
-                ${response.toString() !== "0" &&
-                html`
-                  <span class="section-status"
-                    ><ha-svg-icon
-                      .path=${this.mapResponseToIcon(response)}
-                      .width=${16}
-                      .height=${16}
-                    ></ha-svg-icon>
-                    ${personBadge && personBadge?.type !== "ok"
-                      ? html` <span class="badge counter ${personBadge?.type}">
-                          ${personBadge?.count}
-                        </span>`
-                      : null}
-                    ${attributes?.command &&
-                    html`
+                ${response.toString() !== "0"
+                  ? html`
+                      <span class="section-status"
+                        ><ha-svg-icon
+                          .path=${this.mapResponseToIcon(response)}
+                          .width=${16}
+                          .height=${16}
+                        ></ha-svg-icon>
+                        ${personBadge && personBadge?.type !== "ok"
+                          ? html` <span
+                              class="badge counter ${personBadge?.type}"
+                            >
+                              ${personBadge?.count}
+                            </span>`
+                          : null}
+                        ${attributes?.command &&
+                        html`
                       <span
                       class="badge command"
                       style="background: ${
-                        attributes?.response ? stateDetails?.color : ""
+                        attributes?.response ? responseColor : "#feca57"
                       }"
                     >
                       <ha-svg-icon
@@ -240,8 +239,9 @@ class MapRightNavigation extends LitElement {
                     ></span>
                   </span>
                       `}
-                  </span>
-                `}
+                      </span>
+                    `
+                  : ""}
               </div>
 
               <span class="accordion-icon"
