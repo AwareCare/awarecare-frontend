@@ -34,22 +34,49 @@ import { HomeAssistant } from "../../../types";
 
 const personAssigned = {
   room_111: {
-    persons: ["eli_lazos", "grace_lewis", "james_davis"],
+    persons: [
+      "eli_lazos",
+      "maria_stone",
+      "raewyn_sharp",
+      "benjamin_wilson",
+      "grace_lewis",
+      "james_davis",
+      "lucas_anderson",
+      "mia_wilson",
+      "clay_targaryen",
+    ],
   },
   room_113: {
-    persons: ["ashley_blonde", "benjamin_wilson", "clay_targaryen"],
+    persons: [
+      "aegon_white",
+      "zoe_ali",
+      "dylan_patel",
+      "marcus_johnson",
+      "isabella_torres",
+      "amara_jones",
+      "charlene_martinez",
+      "jose_garcia",
+      "zacky_eigo",
+    ],
+  },
+  room_114: {
+    persons: [
+      "aereth_smith",
+      "jabari_scar",
+      "oliver_brown",
+      "ava_kim",
+      "ashley_blonde",
+      "queenie_pacquiao",
+      "nia_robinson",
+      "emily_foster",
+      "chloe_nguyen",
+    ],
   },
   room_119: {
     persons: ["juan_dela_cruz", "lucas_anderson"],
   },
   room_124: {
     persons: ["oliver_brown", "rod_stewart"],
-  },
-  room_105: {
-    persons: ["zach_doe", "zachy_eigo"],
-  },
-  room_114: {
-    persons: ["allan_walker", "james_doe"],
   },
   room_126: {
     persons: ["love_doe", "mike_doe"],
@@ -149,7 +176,11 @@ class MapView extends LitElement {
             svgElement.classList.add("hasStatus");
           }
 
-          if (svgElementStatus && parsedValue.state !== "0") {
+          if (
+            svgElementStatus &&
+            parsedValue.state !== "0" &&
+            parsedValue.state !== "ok"
+          ) {
             svgElementStatus.style.setProperty("opacity", "1");
 
             const bgStatusGroup = svgElementStatus?.querySelector(
@@ -309,7 +340,7 @@ class MapView extends LitElement {
 
   private checkRoomsForNotOkayStatus() {
     this.hasNotOkayRoom = Object.values(this.roomAttributes).some(
-      (room) => room.state !== "0"
+      (room) => room.state !== "0" && room.state !== "ok"
     );
   }
 
