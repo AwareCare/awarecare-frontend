@@ -162,13 +162,11 @@ class ClassroomHeaderSection extends LitElement {
                 ? this.responseBtnMapping[this.updatedCommand]?.color
                 : "transparent"};"
             >
-              ${isEmpty(this.updatedCommand)
-                ? html`<p>INITIATE EMERGENCY</p>`
-                : html`<p class="hasResponse">
-                    ${this.responseBtnMapping[
-                      this.updatedCommand
-                    ]?.label.toUpperCase()}
-                  </p>`}
+              <p class="hasResponse">
+                ${this.responseBtnMapping[
+                  this.updatedCommand
+                ]?.label.toUpperCase() || "INITIATE EMERGENCY"}
+              </p>
             </h2>
           </div>
 
@@ -178,7 +176,7 @@ class ClassroomHeaderSection extends LitElement {
                 html`<button
                   class="status-button ${key === this.updatedCommand
                     ? "active"
-                    : this.updatedCommand !== "0"
+                    : this.updatedCommand !== "ok"
                       ? "dark"
                       : ""}"
                   key=${key}
@@ -280,7 +278,7 @@ class ClassroomHeaderSection extends LitElement {
         height: 80px;
         flex: 1 1 calc(33.333% - 8px);
         margin-right: 8px;
-        border: 1px solid #e1e1e1 1f;
+        border: 1px solid #212222;
         color: white;
         border-radius: 8px;
         transition:

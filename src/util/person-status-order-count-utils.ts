@@ -5,6 +5,8 @@ const stateMap = {
   medical: "#54a0ff",
   disciplinary: "#f368e0",
   unaccounted: "#01a3a4",
+  absent: "#feca57",
+  okay: "#2ed573",
 };
 
 export function getPersonCountByStatus(

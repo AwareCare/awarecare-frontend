@@ -1,6 +1,8 @@
 /* eslint-disable lit/no-template-arrow */
 import { property, state } from "lit/decorators";
 import isNull from "lodash/isNull";
+import isArray from "lodash/isArray";
+
 import {
   mdiMagnifyMinus,
   mdiMagnifyPlus,
@@ -34,17 +36,7 @@ import { HomeAssistant } from "../../../types";
 
 const personAssigned = {
   room_111: {
-    persons: [
-      "eli_lazos",
-      "maria_stone",
-      "raewyn_sharp",
-      "benjamin_wilson",
-      "grace_lewis",
-      "james_davis",
-      "lucas_anderson",
-      "mia_wilson",
-      "clay_targaryen",
-    ],
+    persons: ["eli_lazos", "clay_targaryen", "aegon_white"],
   },
   room_113: {
     persons: [
@@ -121,8 +113,6 @@ class MapView extends LitElement {
 
   @state() private clickedRoomList: string[] = [];
 
-  @state() private hasNotOkayRoom: boolean = false;
-
   constructor() {
     super();
     this.roomAttributes = {};
@@ -174,13 +164,18 @@ class MapView extends LitElement {
             svgElement.setAttribute("fill", fillColor);
             svgElement.style.setProperty("opacity", "33%");
             svgElement.classList.add("hasStatus");
+          } else {
+            svgElement.removeAttribute("class");
+            svgElement.classList.add("s5");
+            svgElement.style.setProperty("opacity", "0");
+            svgElement.removeAttribute("fill");
+
+            if (svgElementStatus) {
+              svgElementStatus.style.setProperty("opacity", "0");
+            }
           }
 
-          if (
-            svgElementStatus &&
-            parsedValue.state !== "0" &&
-            parsedValue.state !== "ok"
-          ) {
+          if (svgElementStatus && parsedValue.state !== "ok") {
             svgElementStatus.style.setProperty("opacity", "1");
 
             const bgStatusGroup = svgElementStatus?.querySelector(
@@ -211,6 +206,9 @@ class MapView extends LitElement {
 
               if (pathElementIcon) {
                 pathElementIcon.setAttribute("style", "opacity: 1;");
+              }
+              if (personBadgeGroup && isNull(personBadge)) {
+                personBadgeGroup.setAttribute("style", "opacity: 0;");
               }
 
               if (personBadgeGroup && !isNull(personBadge)) {
@@ -256,7 +254,7 @@ class MapView extends LitElement {
                 dynamicCmdIcon.setAttribute("d", commandPath);
               }
 
-              if (responseValue && badgeBgColor) {
+              if (badgeBgColor) {
                 if (badgeBgColor.classList.contains("s11")) {
                   badgeBgColor.classList.remove("s11");
                   badgeBgColor.classList.add("hasResponse");
@@ -273,6 +271,14 @@ class MapView extends LitElement {
                   hasResponseElem.classList.remove(classesToReplace[0]);
                 }
                 hasResponseElem.classList.add(responseValue);
+              } else if (!responseValue) {
+                const classesToRemove = ["ok", "help", "alert", "medical"];
+
+                classesToRemove.forEach((cls) => {
+                  if (hasResponseElem.classList.contains(cls)) {
+                    hasResponseElem.classList.remove(cls);
+                  }
+                });
               }
             }
           }
@@ -282,13 +288,15 @@ class MapView extends LitElement {
               ".hasResponse"
             ) as SVGGElement;
 
-            const classesToReplace = Array.from(
-              hasResponseElem.classList
-            ).filter((cls) => cls !== "hasResponse" && cls !== responseValue);
-            if (classesToReplace.length > 0) {
-              hasResponseElem.classList.remove(classesToReplace[0]);
+            if (hasResponseElem) {
+              const classesToReplace = Array.from(
+                hasResponseElem.classList
+              ).filter((cls) => cls !== "hasResponse" && cls !== responseValue);
+              if (classesToReplace.length > 0) {
+                hasResponseElem.classList.remove(classesToReplace[0]);
+              }
+              hasResponseElem.classList.add(responseValue);
             }
-            hasResponseElem.classList.add(responseValue);
           }
         }
       }
@@ -302,46 +310,68 @@ class MapView extends LitElement {
   }
 
   private async _getStoredValue() {
-    this.roomsEntities = Object.keys(this.hass.states).filter((entityId) =>
-      entityId.startsWith("room.room")
-    );
+    if (this.hass) {
+      this.roomsEntities = Object.keys(this.hass?.states).filter((entityId) =>
+        entityId.startsWith("room.room")
+      );
 
-    this.roomsEntities.forEach((entityId) => {
-      const roomEntity = this.hass.states[entityId];
+      this.roomsEntities.forEach((entityId) => {
+        const roomEntity = this.hass?.states[entityId];
 
-      if (roomEntity) {
-        try {
-          this.roomAttributes[entityId] = roomEntity;
-        } catch (err) {
-          this.handleError(err);
+        if (roomEntity) {
+          try {
+            this.roomAttributes[entityId] = roomEntity;
+          } catch (err) {
+            this.handleError(err);
+          }
         }
-      }
-    });
+      });
+
+      await this._assignPersonsToRooms();
+    }
+  }
+
+  private async _assignPersonsToRooms() {
+    const updatedRoomAttributes = { ...this.roomAttributes };
 
     const personPromises = Object.keys(personAssigned).map(async (roomKey) => {
       const roomId = `room.` + roomKey;
 
-      if (this.roomAttributes[roomId]) {
+      if (updatedRoomAttributes[roomId]) {
         const personStates = await Promise.all(
           personAssigned[roomKey].persons.map(
             (person: string) => this.hass.states[`person.` + person]
           )
         );
+
         const sortedPersonStates = sortPersonsByStatus(
           personStates.filter((personState) => !!personState)
         );
 
-        this.roomAttributes[roomId].attributes.persons = sortedPersonStates;
+        updatedRoomAttributes[roomId] = {
+          ...updatedRoomAttributes[roomId],
+          attributes: {
+            ...updatedRoomAttributes[roomId].attributes,
+            persons: sortedPersonStates,
+          },
+        };
+
+        try {
+          await this.hass.callApi("POST", "states/" + roomId, {
+            state: updatedRoomAttributes[roomId].state,
+            attributes: updatedRoomAttributes[roomId].attributes,
+          });
+        } catch (e: any) {
+          throw e.body?.message || "Unknown error";
+        }
       }
     });
 
     await Promise.all(personPromises);
-  }
 
-  private checkRoomsForNotOkayStatus() {
-    this.hasNotOkayRoom = Object.values(this.roomAttributes).some(
-      (room) => room.state !== "0" && room.state !== "ok"
-    );
+    this.roomAttributes = updatedRoomAttributes;
+
+    this.requestUpdate();
   }
 
   private handleError(error: any) {
@@ -361,6 +391,29 @@ class MapView extends LitElement {
       this.hass.connection.socket.addEventListener("message", (event) => {
         const message = JSON.parse(event.data);
 
+        const isPersonChange =
+          message.event?.c &&
+          Object.keys(message.event.c).some((key) => key.startsWith("person."));
+
+        if (isArray(message)) {
+          const hasPersonInArr = message.some(
+            (item) =>
+              item.event.c &&
+              Object.keys(item.event.c).some((key) => key.startsWith("person."))
+          );
+
+          if (hasPersonInArr) {
+            this._assignPersonsToRooms();
+          }
+
+          this._getStoredValue();
+          this.requestUpdate();
+        }
+
+        if (isPersonChange) {
+          this._assignPersonsToRooms();
+        }
+
         if (message.type === "event" && message.event?.c) {
           const rooms = message.event.c;
 
@@ -371,8 +424,10 @@ class MapView extends LitElement {
               const newCommand = updatedRoom["+"].a.command;
               const newResponse = updatedRoom["+"].a.response;
 
-              this.roomAttributes[roomKey].attributes.command = newCommand;
-              this.roomAttributes[roomKey].attributes.response = newResponse;
+              if (this.roomAttributes[roomKey]) {
+                this.roomAttributes[roomKey].attributes.command = newCommand;
+                this.roomAttributes[roomKey].attributes.response = newResponse;
+              }
 
               this.requestUpdate();
             }
@@ -387,12 +442,6 @@ class MapView extends LitElement {
                   state: newResponse,
                 },
               };
-
-              this.updatedCommand = newResponse;
-
-              if (this.onStatusUpdated) {
-                this.onStatusUpdated();
-              }
 
               this.requestUpdate();
             }
@@ -491,7 +540,7 @@ class MapView extends LitElement {
 
       <div class="container">
         <div
-          class="svg-map ${this.hasNotOkayRoom}"
+          class="svg-map"
           style=${this.clickedRoomList.length > 0 ? "width: 75%" : ""}
         >
           <div class="map-name">
@@ -651,7 +700,7 @@ class MapView extends LitElement {
 		.s13 { fill: #ea4849;stroke: #ffffff;stroke-miterlimit:10;stroke-width: 1.4 }
 		.s14 { fill: #ffffff }
 		.bg_status_color { opacity: 0 }
-		.hasResponse{stroke: #ffffff;stroke-miterlimit:10;stroke-width: 1.4}
+		.hasResponse{fill: #feca57;stroke: #ffffff;stroke-miterlimit:10;stroke-width: 1.4}
 		.counterBadgeColor{stroke: #ffffff;stroke-miterlimit:10;stroke-width: 1.4}
 		.ok { fill: #1dd1a1 }
 		.help { fill: #ed5d5d}
