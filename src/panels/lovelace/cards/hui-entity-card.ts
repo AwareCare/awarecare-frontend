@@ -113,7 +113,7 @@ export class HuiEntityCard extends LitElement implements LovelaceCard {
     }
 
     const stateObj = this.hass.states[this._config.entity];
-    this.roomResponse = stateObj.attributes.response || "";
+    const roomResponse = stateObj.attributes.response || "";
 
     if (!stateObj) {
       return html`
@@ -138,9 +138,9 @@ export class HuiEntityCard extends LitElement implements LovelaceCard {
       <ha-card class="custom-card" tabindex="0">
         ${stateObj.entity_id.includes("room.")
           ? html`<div class="header custom-btn">
-          <div class="state-icon" style="background-color: ${stateDetails.color}">
+          <div class="state-icon" style="background-color: ${stateDetails?.color}">
             <ha-svg-icon
-              .path=${stateDetails.icon}
+              .path=${stateDetails?.icon}
               .width=${36}
               .height=${36}
             ></ha-svg-icon>
@@ -191,12 +191,12 @@ export class HuiEntityCard extends LitElement implements LovelaceCard {
 
         <div class="container-actions">
           <div class="custom-btn-actions">
-              <button class="btn-action ${this.roomResponse === "ok" ? "active" : ""}" id="ok" @click=${this._sendResponse}>OK</button>
-              <button class="btn-action ${this.roomResponse === "help" ? "active" : ""}" id="help" @click=${this._sendResponse}>HELP</button>
+              <button class="btn-action ${roomResponse === "ok" ? "active" : ""}" id="ok" @click=${this._sendResponse}>OK</button>
+              <button class="btn-action ${roomResponse === "help" ? "active" : ""}" id="help" @click=${this._sendResponse}>HELP</button>
           </div>
           <div class="custom-btn-actions">
-              <button class="btn-action ${this.roomResponse === "alert" ? "active" : ""}" id="alert" @click=${this._sendResponse}>ALERT</button>
-              <button class="btn-action ${this.roomResponse === "medical" ? "active" : ""}" id="medical" @click=${this._sendResponse}>MEDICAL</button>
+              <button class="btn-action ${roomResponse === "alert" ? "active" : ""}" id="alert" @click=${this._sendResponse}>ALERT</button>
+              <button class="btn-action ${roomResponse === "medical" ? "active" : ""}" id="medical" @click=${this._sendResponse}>MEDICAL</button>
           </div>
         </div>
         `
@@ -382,16 +382,16 @@ export class HuiEntityCard extends LitElement implements LovelaceCard {
           border-color: #454545;
         }
         .custom-btn-actions .btn-action.active#ok {
-          background: #1dd1a1;
+          background: #1dd1a1 !important;
         }
         .custom-btn-actions .btn-action.active#help {
-          background: #ed5d5d;
+          background: #ed5d5d !important;
         }
         .custom-btn-actions .btn-action.active#alert {
-          background: #ffcb2d;
+          background: #ffcb2d !important;
         }
         .custom-btn-actions .btn-action.active#medical {
-          background: #6fa1d6;
+          background: #6fa1d6 !important;
         }
         .custom-btn-actions .btn-action:hover {
           background-color: #2e2e2e !important;
