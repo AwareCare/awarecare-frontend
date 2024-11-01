@@ -34,17 +34,7 @@ import { HomeAssistant } from "../../../types";
 
 const personAssigned = {
   room_111: {
-    persons: [
-      "eli_lazos",
-      "maria_stone",
-      "raewyn_sharp",
-      "benjamin_wilson",
-      "grace_lewis",
-      "james_davis",
-      "lucas_anderson",
-      "mia_wilson",
-      "clay_targaryen",
-    ],
+    persons: ["eli_lazos", "aegon_white", "clay_targaryen"],
   },
   room_113: {
     persons: [
@@ -302,46 +292,44 @@ class MapView extends LitElement {
   }
 
   private async _getStoredValue() {
-    this.roomsEntities = Object.keys(this.hass.states).filter((entityId) =>
-      entityId.startsWith("room.room")
-    );
+    if (this.hass) {
+      this.roomsEntities = Object.keys(this.hass?.states).filter((entityId) =>
+        entityId.startsWith("room.room")
+      );
 
-    this.roomsEntities.forEach((entityId) => {
-      const roomEntity = this.hass.states[entityId];
+      this.roomsEntities.forEach((entityId) => {
+        const roomEntity = this.hass?.states[entityId];
 
-      if (roomEntity) {
-        try {
-          this.roomAttributes[entityId] = roomEntity;
-        } catch (err) {
-          this.handleError(err);
+        if (roomEntity) {
+          try {
+            this.roomAttributes[entityId] = roomEntity;
+          } catch (err) {
+            this.handleError(err);
+          }
         }
-      }
-    });
+      });
 
-    const personPromises = Object.keys(personAssigned).map(async (roomKey) => {
-      const roomId = `room.` + roomKey;
+      const personPromises = Object.keys(personAssigned).map(
+        async (roomKey) => {
+          const roomId = `room.` + roomKey;
 
-      if (this.roomAttributes[roomId]) {
-        const personStates = await Promise.all(
-          personAssigned[roomKey].persons.map(
-            (person: string) => this.hass.states[`person.` + person]
-          )
-        );
-        const sortedPersonStates = sortPersonsByStatus(
-          personStates.filter((personState) => !!personState)
-        );
+          if (this.roomAttributes[roomId]) {
+            const personStates = await Promise.all(
+              personAssigned[roomKey].persons.map(
+                (person: string) => this.hass.states[`person.` + person]
+              )
+            );
+            const sortedPersonStates = sortPersonsByStatus(
+              personStates.filter((personState) => !!personState)
+            );
 
-        this.roomAttributes[roomId].attributes.persons = sortedPersonStates;
-      }
-    });
+            this.roomAttributes[roomId].attributes.persons = sortedPersonStates;
+          }
+        }
+      );
 
-    await Promise.all(personPromises);
-  }
-
-  private checkRoomsForNotOkayStatus() {
-    this.hasNotOkayRoom = Object.values(this.roomAttributes).some(
-      (room) => room.state !== "0" && room.state !== "ok"
-    );
+      await Promise.all(personPromises);
+    }
   }
 
   private handleError(error: any) {

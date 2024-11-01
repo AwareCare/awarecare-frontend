@@ -207,7 +207,7 @@ class MapRightNavigation extends LitElement {
                 ${(attributes.friendly_name || "")
                   .replace("_", " ")
                   .toUpperCase()}
-                ${response.toString() !== "0"
+                ${response.toString() !== "ok"
                   ? html`
                       <span class="section-status"
                         ><ha-svg-icon
